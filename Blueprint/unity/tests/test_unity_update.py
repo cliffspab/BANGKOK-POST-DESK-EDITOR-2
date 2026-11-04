@@ -1044,10 +1044,16 @@ class UnityUpdaterTests(unittest.TestCase):
         for role, doc in by_role.items():
             desired = updater.desired[role]
             expected_visible = canonical_text(_projection_text(desired.native_projection))
+            expected_wording = console_app.normalize_wording_text(expected_visible)
             self.assertEqual(doc["desired_visible_text"], expected_visible)
             self.assertEqual(
                 doc["desired_visible_text_sha256"],
                 sha256_text(expected_visible),
+            )
+            self.assertEqual(doc["desired_wording_text"], expected_wording)
+            self.assertEqual(
+                doc["desired_wording_sha256"],
+                sha256_text(expected_wording),
             )
             self.assertNotIn("desired_text", doc)
             self.assertNotIn("desired_text_sha256", doc)
@@ -1094,8 +1100,11 @@ class UnityUpdaterTests(unittest.TestCase):
                 ),
             },
         )
-        self.assertEqual(eval_res["status_code"], "VISIBLE_TEXT_MATCH")
-        self.assertEqual(eval_res["status_label"], "Visible Text Match")
+        self.assertEqual(eval_res["status_code"], "WORDING_MATCH")
+        self.assertEqual(eval_res["status_label"], "Wording Match")
+        self.assertEqual(eval_res["exact_text_status_code"], "EXACT_TEXT_MATCH")
+        self.assertEqual(eval_res["exact_text_status_label"], "Exact Text/Paragraph Match")
+        self.assertEqual(eval_res["diff"]["label"], "Exact Text/Paragraph Diff")
         self.assertEqual(eval_res["diff"]["added"], 0)
         self.assertEqual(eval_res["diff"]["removed"], 0)
 
@@ -1166,12 +1175,16 @@ class UnityUpdaterTests(unittest.TestCase):
         )
 
         self.assertFalse(audit["native_structure_verified"])
-        self.assertEqual(audit["summary"]["visible_text_matched_targets"], 7)
-        self.assertTrue(audit["summary"]["all_visible_text_matched"])
+        self.assertEqual(audit["summary"]["wording_matched_targets"], 7)
+        self.assertEqual(audit["summary"]["exact_text_matched_targets"], 7)
+        self.assertEqual(audit["summary"]["verified_targets"], 7)
+        self.assertTrue(audit["summary"]["all_wording_matched"])
 
         for doc in audit["documents"]:
-            self.assertEqual(doc["status_code"], "VISIBLE_TEXT_MATCH", doc["role"])
-            self.assertEqual(doc["status_label"], "Visible Text Match", doc["role"])
+            self.assertEqual(doc["status_code"], "WORDING_MATCH", doc["role"])
+            self.assertEqual(doc["status_label"], "Wording Match", doc["role"])
+            self.assertEqual(doc["exact_text_status_code"], "EXACT_TEXT_MATCH", doc["role"])
+            self.assertEqual(doc["diff"]["label"], "Exact Text/Paragraph Diff", doc["role"])
             self.assertEqual(doc["diff"]["added"], 0, doc["role"])
             self.assertEqual(doc["diff"]["removed"], 0, doc["role"])
             self.assertEqual(doc["diff"]["unified_lines"], [], doc["role"])
@@ -1179,11 +1192,15 @@ class UnityUpdaterTests(unittest.TestCase):
             self.assertFalse(doc["checks"]["native_projection_verified"], doc["role"])
             self.assertIsNone(doc["hashes"]["observed_native_projection_sha256"])
             self.assertEqual(
+                doc["hashes"]["desired_wording_sha256"],
+                doc["hashes"]["observed_wording_sha256"],
+            )
+            self.assertEqual(
                 doc["hashes"]["desired_visible_text_sha256"],
                 doc["hashes"]["observed_exported_visible_text_sha256"],
             )
 
-    def test_plain_text_export_reports_visible_text_diff_when_body_differs(self) -> None:
+    def test_extra_blank_paragraphs_do_not_cause_wording_diff(self) -> None:
         import sys
 
         repo_root = CANDIDATE_ROOT.parents[1]
@@ -1196,10 +1213,11 @@ class UnityUpdaterTests(unittest.TestCase):
         valid_visible = console_app.visible_text_from_native_projection(
             edit_desired.native_projection
         )
-        drifted_visible = valid_visible.replace(
-            "Bold and code; link.",
-            "- **Bold** and `code`; [link](https://example.test).",
-        )
+        # Insert extra blank paragraphs throughout the body (after the identity header)
+        header_part, body_part = valid_visible.split("\n\n", 1)
+        body_with_extra_blanks = "\n\n\n".join(body_part.split("\n"))
+        exported_with_blanks = f"{header_part}\n\n\n\n{body_with_extra_blanks}\n\n\n"
+
         result = console_app._evaluate_single_role(
             updater,
             "edit",
@@ -1211,17 +1229,320 @@ class UnityUpdaterTests(unittest.TestCase):
                     "mimeType": GOOGLE_DOC_MIME,
                     "trashed": False,
                 },
-                "text": drifted_visible,
+                "text": exported_with_blanks,
             },
         )
-        self.assertEqual(result["status_code"], "VISIBLE_TEXT_DIFF")
-        self.assertEqual(result["status_label"], "Visible Text Diff")
-        self.assertFalse(result["checks"]["visible_text_sha_match"])
-        self.assertGreater(result["diff"]["added"], 0)
-        self.assertGreater(result["diff"]["removed"], 0)
-        self.assertTrue(
-            any("Bold and code; link." in line for line in result["diff"]["unified_lines"])
+        # Primary editorial status MUST be Wording Match
+        self.assertEqual(result["status_code"], "WORDING_MATCH")
+        self.assertEqual(result["status_label"], "Wording Match")
+        self.assertTrue(result["checks"]["wording_sha_match"])
+        self.assertEqual(
+            result["hashes"]["desired_wording_sha256"],
+            result["hashes"]["observed_wording_sha256"],
         )
+        # Secondary diagnostic records Exact Text/Paragraph Diff
+        self.assertFalse(result["checks"]["exact_text_sha_match"])
+        self.assertEqual(result["exact_text_status_code"], "EXACT_TEXT_DIFF")
+        self.assertEqual(result["exact_text_status_label"], "Exact Text/Paragraph Diff")
+        self.assertEqual(result["diff"]["label"], "Exact Text/Paragraph Diff")
+        self.assertGreater(result["diff"]["added"], 0)
+
+    def test_different_paragraph_boundaries_around_identical_wording_do_not_cause_wording_diff(self) -> None:
+        import sys
+
+        repo_root = CANDIDATE_ROOT.parents[1]
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
+        import app as console_app
+
+        updater = UnityUpdater(self.config, self.source_root, None)
+        edit_desired = updater.desired["edit"]
+        valid_visible = console_app.visible_text_from_native_projection(
+            edit_desired.native_projection
+        )
+        header_part, body_part = valid_visible.split("\n\n", 1)
+        # Reflow body paragraphs: split words across lines AND merge lines with runs of whitespace
+        words = body_part.split()
+        reflowed_lines = [
+            "   ".join(words[i:i + 2])
+            for i in range(0, len(words), 2)
+        ]
+        exported_reflowed = f"{header_part}\n\n" + "\n\n".join(reflowed_lines) + "\n"
+
+        result = console_app._evaluate_single_role(
+            updater,
+            "edit",
+            {
+                "accessible": True,
+                "document_id": edit_desired.target.document_id,
+                "meta": {
+                    "name": edit_desired.target.title,
+                    "mimeType": GOOGLE_DOC_MIME,
+                    "trashed": False,
+                },
+                "text": exported_reflowed,
+            },
+        )
+        self.assertEqual(result["status_code"], "WORDING_MATCH")
+        self.assertEqual(result["status_label"], "Wording Match")
+        self.assertTrue(result["checks"]["wording_sha_match"])
+        self.assertEqual(
+            result["hashes"]["desired_wording_sha256"],
+            result["hashes"]["observed_wording_sha256"],
+        )
+        self.assertFalse(result["checks"]["exact_text_sha_match"])
+        self.assertEqual(result["exact_text_status_code"], "EXACT_TEXT_DIFF")
+        self.assertEqual(result["exact_text_status_label"], "Exact Text/Paragraph Diff")
+        self.assertTrue(result["diff"]["unified_lines"])
+
+    def test_changes_in_punctuation_spelling_case_numbers_or_words_cause_wording_diff(self) -> None:
+        import sys
+
+        repo_root = CANDIDATE_ROOT.parents[1]
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
+        import app as console_app
+
+        updater = UnityUpdater(self.config, self.source_root, None)
+        edit_desired = updater.desired["edit"]
+        valid_visible = console_app.visible_text_from_native_projection(
+            edit_desired.native_projection
+        )
+        mutations = {
+            "punctuation_removed": valid_visible.replace("Bold and code; link.", "Bold and code link."),
+            "punctuation_changed": valid_visible.replace("Bold and code; link.", "Bold and code: link!"),
+            "spelling_changed": valid_visible.replace("Bold and code; link.", "Bould and code; link."),
+            "case_changed": valid_visible.replace("Bold and code; link.", "bold and code; link."),
+            "number_changed": valid_visible.replace("Bold and code; link.", "Bold 2 and code; link."),
+            "word_changed": valid_visible.replace("Bold and code; link.", "Bold and script; link."),
+        }
+        for label, mutated_text in mutations.items():
+            with self.subTest(mutation=label):
+                self.assertNotEqual(mutated_text, valid_visible, label)
+                result = console_app._evaluate_single_role(
+                    updater,
+                    "edit",
+                    {
+                        "accessible": True,
+                        "document_id": edit_desired.target.document_id,
+                        "meta": {
+                            "name": edit_desired.target.title,
+                            "mimeType": GOOGLE_DOC_MIME,
+                            "trashed": False,
+                        },
+                        "text": mutated_text,
+                    },
+                )
+                self.assertEqual(result["status_code"], "WORDING_DIFF", label)
+                self.assertEqual(result["status_label"], "Wording Diff", label)
+                self.assertFalse(result["checks"]["wording_sha_match"], label)
+                self.assertNotEqual(
+                    result["hashes"]["desired_wording_sha256"],
+                    result["hashes"]["observed_wording_sha256"],
+                    label,
+                )
+
+        # Also verify changing a digit in existing numbered text ([P1] -> [P2]) in photo role causes WORDING_DIFF
+        photo_desired = updater.desired["photo"]
+        photo_visible = console_app.visible_text_from_native_projection(
+            photo_desired.native_projection
+        )
+        photo_digit_mutated = photo_visible.replace("[P1]", "[P9]", 1)
+        self.assertNotEqual(photo_digit_mutated, photo_visible)
+        photo_res = console_app._evaluate_single_role(
+            updater,
+            "photo",
+            {
+                "accessible": True,
+                "document_id": photo_desired.target.document_id,
+                "meta": {
+                    "name": photo_desired.target.title,
+                    "mimeType": GOOGLE_DOC_MIME,
+                    "trashed": False,
+                },
+                "text": photo_digit_mutated,
+            },
+        )
+        self.assertEqual(photo_res["status_code"], "WORDING_DIFF")
+        self.assertEqual(photo_res["status_label"], "Wording Diff")
+        self.assertFalse(photo_res["checks"]["wording_sha_match"])
+
+    def test_browser_and_python_wording_normalisation_produce_identical_results(self) -> None:
+        import re as _re
+        import shutil
+        import subprocess
+        import sys
+
+        repo_root = CANDIDATE_ROOT.parents[1]
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
+        import app as console_app
+
+        html_path = repo_root / "static" / "index.html"
+        html_text = html_path.read_text(encoding="utf-8")
+
+        # Extract the exact JS regex and normalizeWordingText function from static/index.html
+        re_match = _re.search(
+            r"const\s+WORDING_WHITESPACE_RE\s*=\s*(/[^/]+/[a-z]*)\s*;",
+            html_text,
+        )
+        fn_match = _re.search(
+            r"(function\s+normalizeWordingText\s*\(rawText\)\s*\{.*?\n\s*\})",
+            html_text,
+            flags=_re.DOTALL,
+        )
+        self.assertIsNotNone(re_match, "WORDING_WHITESPACE_RE must exist in static/index.html")
+        self.assertIsNotNone(fn_match, "normalizeWordingText must exist in static/index.html")
+        js_regex_literal = re_match.group(1)
+        self.assertEqual(
+            js_regex_literal.strip("/"),
+            console_app.WORDING_WHITESPACE_RE.pattern,
+        )
+
+        updater = UnityUpdater(self.config, self.source_root, None)
+        samples = [
+            "",
+            "   \n\r\n\t  ",
+            "\ufeffBKP 3.0 UNITY\r\nROLE: EDIT\n\n\nFirst\t\tparagraph.\n\nSecond\u00a0paragraph — 100% intact!",
+            "Cafe\u0301 vs Café; 'quotes', \"double\", (parens), [brackets], 301026_gpt_bkp3-1.",
+            "Line1\u2028Line2\u2029Line3\u2003WideSpace\u3000IdeographicSpace",
+            *[
+                console_app.visible_text_from_native_projection(
+                    updater.desired[role].native_projection
+                )
+                for role in self.config.publish_order
+            ],
+        ]
+
+        node_bin = shutil.which("node")
+        self.assertIsNotNone(node_bin, "Node.js is required to verify browser JS parity")
+        js_script = (
+            f"const WORDING_WHITESPACE_RE = {js_regex_literal};\n"
+            f"{fn_match.group(1)}\n"
+            "const crypto = require('crypto');\n"
+            "const inputs = JSON.parse(process.argv[1]);\n"
+            "const out = inputs.map((s) => {\n"
+            "  const norm = normalizeWordingText(s);\n"
+            "  const sha = crypto.createHash('sha256').update(Buffer.from(norm, 'utf8')).digest('hex');\n"
+            "  return { norm, sha };\n"
+            "});\n"
+            "process.stdout.write(JSON.stringify(out));\n"
+        )
+        proc = subprocess.run(
+            [node_bin, "-e", js_script, json.dumps(samples)],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        js_results = json.loads(proc.stdout)
+        self.assertEqual(len(js_results), len(samples))
+
+        for sample, js_item in zip(samples, js_results):
+            py_norm = console_app.normalize_wording_text(sample)
+            py_sha = sha256_text(py_norm)
+            self.assertEqual(js_item["norm"], py_norm)
+            self.assertEqual(js_item["sha"], py_sha)
+
+    def test_existing_identity_edition_unity_set_and_source_hash_checks_remain_enforced(self) -> None:
+        import sys
+
+        repo_root = CANDIDATE_ROOT.parents[1]
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
+        import app as console_app
+
+        updater = UnityUpdater(self.config, self.source_root, None)
+        edit_desired = updater.desired["edit"]
+        valid_visible = console_app.visible_text_from_native_projection(
+            edit_desired.native_projection
+        )
+
+        # 1. Tampered edition -> EDITION_DRIFT
+        wrong_edition = valid_visible.replace(
+            f"SOURCE EDITION: {updater.edition}",
+            "SOURCE EDITION: 010125_old_edition",
+            1,
+        )
+        res_edition = console_app._evaluate_single_role(
+            updater,
+            "edit",
+            {
+                "accessible": True,
+                "document_id": edit_desired.target.document_id,
+                "meta": {"name": edit_desired.target.title, "mimeType": GOOGLE_DOC_MIME, "trashed": False},
+                "text": wrong_edition,
+            },
+        )
+        self.assertEqual(res_edition["status_code"], "EDITION_DRIFT")
+        self.assertFalse(res_edition["checks"]["edition_match"])
+
+        # 2. Tampered role -> IDENTITY_ERROR
+        wrong_role = valid_visible.replace("ROLE: EDIT", "ROLE: PHOTO", 1)
+        res_role = console_app._evaluate_single_role(
+            updater,
+            "edit",
+            {
+                "accessible": True,
+                "document_id": edit_desired.target.document_id,
+                "meta": {"name": edit_desired.target.title, "mimeType": GOOGLE_DOC_MIME, "trashed": False},
+                "text": wrong_role,
+            },
+        )
+        self.assertEqual(res_role["status_code"], "IDENTITY_ERROR")
+        self.assertFalse(res_role["checks"]["role_match"])
+
+        # 3. Tampered UNITY SET digest -> IDENTITY_ERROR
+        wrong_set = valid_visible.replace(
+            f"UNITY SET: {updater.unity_set_digest}",
+            f"UNITY SET: {'0' * 64}",
+            1,
+        )
+        res_set = console_app._evaluate_single_role(
+            updater,
+            "edit",
+            {
+                "accessible": True,
+                "document_id": edit_desired.target.document_id,
+                "meta": {"name": edit_desired.target.title, "mimeType": GOOGLE_DOC_MIME, "trashed": False},
+                "text": wrong_set,
+            },
+        )
+        self.assertEqual(res_set["status_code"], "IDENTITY_ERROR")
+        self.assertFalse(res_set["checks"]["unity_set_match"])
+
+        # 4. Tampered SOURCE-SHA256 witness -> IDENTITY_ERROR
+        wrong_src_sha = valid_visible.replace(
+            f"SOURCE-SHA256: {edit_desired.source_sha256}",
+            f"SOURCE-SHA256: {'f' * 64}",
+            1,
+        )
+        res_src_sha = console_app._evaluate_single_role(
+            updater,
+            "edit",
+            {
+                "accessible": True,
+                "document_id": edit_desired.target.document_id,
+                "meta": {"name": edit_desired.target.title, "mimeType": GOOGLE_DOC_MIME, "trashed": False},
+                "text": wrong_src_sha,
+            },
+        )
+        self.assertEqual(res_src_sha["status_code"], "IDENTITY_ERROR")
+        self.assertFalse(res_src_sha["checks"]["header_source_markdown_sha_match"])
+
+        # 5. Missing BKP 3.0 UNITY header -> IDENTITY_ERROR
+        missing_header = valid_visible.replace("BKP 3.0 UNITY\n", "", 1)
+        res_missing = console_app._evaluate_single_role(
+            updater,
+            "edit",
+            {
+                "accessible": True,
+                "document_id": edit_desired.target.document_id,
+                "meta": {"name": edit_desired.target.title, "mimeType": GOOGLE_DOC_MIME, "trashed": False},
+                "text": missing_header,
+            },
+        )
+        self.assertEqual(res_missing["status_code"], "IDENTITY_ERROR")
+        self.assertIsNotNone(res_missing["identity_error"])
 
 
 if __name__ == "__main__":

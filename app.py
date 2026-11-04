@@ -13,6 +13,7 @@ import re
 import subprocess
 import sys
 from typing import Any
+import unicodedata
 from urllib.parse import parse_qs, urlparse
 
 ROOT_DIR = Path(__file__).resolve().parent
@@ -261,10 +262,14 @@ def build_directory(q: str, branch: str) -> dict[str, Any]:
 
 
 NATIVE_VERIFICATION_RESERVATION_NOTE = (
-    "Plain-text export verifies canonical visible text only. Complete "
+    "Plain-text export verifies wording and visible text only. Complete "
     "native-projection verification—including headings, lists, links and "
     "code-block structure—is reserved for a structural Google Docs API read "
     "and reconstruction."
+)
+
+WORDING_WHITESPACE_RE = re.compile(
+    r"[ \t\n\r\x0b\x0c\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+"
 )
 
 
@@ -282,6 +287,13 @@ def normalize_exported_visible_text(raw_text: str) -> str:
     cleaned = str(raw_text).lstrip("\ufeff")
     lines = canonical_text(cleaned).rstrip("\n").split("\n")
     return canonical_text(normalized_paragraph_text(lines))
+
+
+def normalize_wording_text(raw_text: str) -> str:
+    """Unicode-normalize (NFC) and treat line endings, empty paragraphs, paragraph boundaries and whitespace runs as separators without altering punctuation, case, or spelling."""
+    cleaned = unicodedata.normalize("NFC", str(raw_text or "").lstrip("\ufeff"))
+    tokens = [tok for tok in WORDING_WHITESPACE_RE.split(cleaned) if tok]
+    return (" ".join(tokens) + "\n") if tokens else "\n"
 
 
 def build_unity_plan(
@@ -304,6 +316,8 @@ def build_unity_plan(
         )
         visible_text = visible_text_from_native_projection(projection)
         visible_text_sha256 = sha256_text(visible_text)
+        wording_text = normalize_wording_text(visible_text)
+        wording_sha256 = sha256_text(wording_text)
         docs.append({
             "role": role,
             "title": doc.get("title"),
@@ -318,6 +332,8 @@ def build_unity_plan(
                 "desired_native_projection_sha256"
             ),
             "desired_format_link_sha256": doc.get("desired_format_link_sha256"),
+            "desired_wording_sha256": wording_sha256,
+            "desired_wording_text": wording_text,
             "desired_visible_text_sha256": visible_text_sha256,
             "desired_visible_text": visible_text,
             "paragraph_count": len(projection.get("paragraphs", [])),
@@ -361,7 +377,7 @@ def _evaluate_single_role(
     role: str,
     observed_payload: dict[str, Any],
 ) -> dict[str, Any]:
-    """Compare an exported Google Drive document body against desired.native_projection visible text."""
+    """Compare an exported Google Drive document body against desired.native_projection wording (primary) and exact visible text (secondary diagnostic)."""
     from unity_update import (
         UnityError,
         parse_identity,
@@ -372,6 +388,8 @@ def _evaluate_single_role(
     target = desired.target
     desired_visible_text = visible_text_from_native_projection(desired.native_projection)
     desired_visible_text_sha = sha256_text(desired_visible_text)
+    desired_wording_text = normalize_wording_text(desired_visible_text)
+    desired_wording_sha = sha256_text(desired_wording_text)
 
     accessible = bool(observed_payload.get("accessible", False))
     error_msg = observed_payload.get("error")
@@ -387,7 +405,9 @@ def _evaluate_single_role(
             "accessible": False,
             "status_code": "UNREACHABLE",
             "status_label": "Unreachable / Access Required",
-            "verification_mode": "plain_text_export_visible_text",
+            "exact_text_status_code": "UNREACHABLE",
+            "exact_text_status_label": "Exact Text/Paragraph Diff (Unreachable)",
+            "verification_mode": "plain_text_export_wording_and_exact_diff",
             "native_structure_verified": False,
             "native_verification_note": NATIVE_VERIFICATION_RESERVATION_NOTE,
             "error": error_msg or "Document could not be read from Google Drive.",
@@ -402,6 +422,8 @@ def _evaluate_single_role(
                 "status_match": False,
                 "unity_set_match": False,
                 "header_source_markdown_sha_match": False,
+                "wording_sha_match": False,
+                "exact_text_sha_match": False,
                 "visible_text_sha_match": False,
                 "native_projection_verified": False,
             },
@@ -411,33 +433,53 @@ def _evaluate_single_role(
                 "desired_native_projection_sha256": desired.native_projection_sha256,
                 "desired_format_link_sha256": desired.format_link_sha256,
                 "observed_native_projection_sha256": None,
+                "desired_wording_sha256": desired_wording_sha,
+                "observed_wording_sha256": None,
                 "desired_visible_text_sha256": desired_visible_text_sha,
                 "observed_exported_visible_text_sha256": None,
             },
             "diff": {
+                "label": "Exact Text/Paragraph Diff",
+                "exact_text_match": False,
                 "added": 0,
                 "removed": 0,
                 "unified_lines": [],
             },
+            "desired_wording_text": desired_wording_text,
+            "observed_wording_text": "",
             "desired_visible_text": desired_visible_text,
             "observed_visible_text": "",
         }
 
     norm_text = normalize_exported_visible_text(str(raw_text))
     obs_visible_text_sha = sha256_text(norm_text)
+    obs_wording_text = normalize_wording_text(norm_text)
+    obs_wording_sha = sha256_text(obs_wording_text)
 
     # Parse identity header from normalized exported visible text
     identity_dict: dict[str, Any] | None = None
     identity_error: str | None = None
     try:
         parsed_id = parse_identity(norm_text, updater.config.header)
+        header_source_sha = parsed_id.source_sha256
+        if header_source_sha is None:
+            for hdr_line in norm_text.splitlines()[1:33]:
+                if hdr_line == "":
+                    break
+                m_sha = re.fullmatch(r"SOURCE-SHA256:\s*(\S.*?)\s*", hdr_line)
+                if m_sha:
+                    candidate_sha = m_sha.group(1).strip().lower()
+                    if not re.fullmatch(r"[0-9a-f]{64}", candidate_sha):
+                        raise UnityError("document SOURCE-SHA256 is malformed")
+                    header_source_sha = candidate_sha
+                    break
         identity_dict = {
             "role": parsed_id.role,
             "edition": parsed_id.edition,
             "status": parsed_id.status,
             "unity_set_digest": parsed_id.unity_set_digest,
             "source": parsed_id.source,
-            "source_sha256": parsed_id.source_sha256,
+            "source_sha256": header_source_sha,
         }
     except UnityError as exc:
         identity_error = str(exc)
@@ -456,24 +498,40 @@ def _evaluate_single_role(
         identity_dict
         and identity_dict["source_sha256"] == desired.source_sha256
     )
-    visible_text_sha_match = obs_visible_text_sha == desired_visible_text_sha
+    wording_sha_match = obs_wording_sha == desired_wording_sha
+    exact_text_sha_match = obs_visible_text_sha == desired_visible_text_sha
 
-    # Determine status: plain-text export compares visible text only and never
-    # claims native-format equivalence.
+    # Secondary diagnostic status: Exact Text/Paragraph Diff (never determines editorial drift by itself)
+    if exact_text_sha_match:
+        exact_text_status_code = "EXACT_TEXT_MATCH"
+        exact_text_status_label = "Exact Text/Paragraph Match"
+    else:
+        exact_text_status_code = "EXACT_TEXT_DIFF"
+        exact_text_status_label = "Exact Text/Paragraph Diff"
+
+    # Primary editorial-content status: Wording Match / Wording Diff (with full identity & witness enforcement)
     if identity_error:
         status_code = "IDENTITY_ERROR"
         status_label = "Identity Header Error"
     elif not edition_match:
         status_code = "EDITION_DRIFT"
         status_label = f"Edition Drift ({identity_dict['edition'] if identity_dict else 'unknown'})"
-    elif visible_text_sha_match and role_match and status_match and unity_set_match:
-        status_code = "VISIBLE_TEXT_MATCH"
-        status_label = "Visible Text Match"
+    elif not (
+        role_match
+        and status_match
+        and unity_set_match
+        and header_source_markdown_sha_match
+    ):
+        status_code = "IDENTITY_ERROR"
+        status_label = "Identity / Witness Mismatch"
+    elif wording_sha_match:
+        status_code = "WORDING_MATCH"
+        status_label = "Wording Match"
     else:
-        status_code = "VISIBLE_TEXT_DIFF"
-        status_label = "Visible Text Diff"
+        status_code = "WORDING_DIFF"
+        status_label = "Wording Diff"
 
-    # Compute unified diff against the desired native-projection visible text
+    # Compute Exact Text/Paragraph Diff against the desired native-projection visible text
     desired_lines = desired_visible_text.splitlines()
     observed_lines = norm_text.splitlines()
     diff_iter = difflib.unified_diff(
@@ -496,7 +554,9 @@ def _evaluate_single_role(
         "accessible": True,
         "status_code": status_code,
         "status_label": status_label,
-        "verification_mode": "plain_text_export_visible_text",
+        "exact_text_status_code": exact_text_status_code,
+        "exact_text_status_label": exact_text_status_label,
+        "verification_mode": "plain_text_export_wording_and_exact_diff",
         "native_structure_verified": False,
         "native_verification_note": NATIVE_VERIFICATION_RESERVATION_NOTE,
         "identity_error": identity_error,
@@ -511,7 +571,9 @@ def _evaluate_single_role(
             "status_match": status_match,
             "unity_set_match": unity_set_match,
             "header_source_markdown_sha_match": header_source_markdown_sha_match,
-            "visible_text_sha_match": visible_text_sha_match,
+            "wording_sha_match": wording_sha_match,
+            "exact_text_sha_match": exact_text_sha_match,
+            "visible_text_sha_match": exact_text_sha_match,
             "native_projection_verified": False,
         },
         "hashes": {
@@ -522,15 +584,21 @@ def _evaluate_single_role(
             "desired_native_projection_sha256": desired.native_projection_sha256,
             "desired_format_link_sha256": desired.format_link_sha256,
             "observed_native_projection_sha256": None,
+            "desired_wording_sha256": desired_wording_sha,
+            "observed_wording_sha256": obs_wording_sha,
             "desired_visible_text_sha256": desired_visible_text_sha,
             "observed_exported_visible_text_sha256": obs_visible_text_sha,
         },
         "diff": {
+            "label": "Exact Text/Paragraph Diff",
+            "exact_text_match": exact_text_sha_match,
             "added": added,
             "removed": removed,
             "unified_lines": unified_lines[:1200],
             "truncated": len(unified_lines) > 1200,
         },
+        "desired_wording_text": desired_wording_text,
+        "observed_wording_text": obs_wording_text,
         "desired_visible_text": desired_visible_text,
         "observed_visible_text": norm_text,
     }
@@ -541,7 +609,7 @@ def audit_drive_payload(
     config_path: Path | None = None,
     source_root: Path | None = None,
 ) -> dict[str, Any]:
-    """Audit observed Google Drive folder + 7 Unity docs against local Blueprint native-projection visible text."""
+    """Audit observed Google Drive folder + 7 Unity docs against local Blueprint native-projection wording and exact visible text."""
     from unity_update import UnityUpdater, load_config
 
     config = load_config(config_path or (UNITY_DIR / "unity-config.json"))
@@ -571,15 +639,25 @@ def audit_drive_payload(
         role_obs = docs_obs.get(role) or {}
         results.append(_evaluate_single_role(updater, role, role_obs))
 
-    visible_match_count = sum(
-        1 for r in results if r["status_code"] == "VISIBLE_TEXT_MATCH"
+    wording_match_count = sum(
+        1 for r in results if r["status_code"] == "WORDING_MATCH"
+    )
+    exact_text_match_count = sum(
+        1
+        for r in results
+        if r.get("exact_text_status_code") == "EXACT_TEXT_MATCH"
+    )
+    exact_text_diff_count = sum(
+        1
+        for r in results
+        if r["accessible"] and r.get("exact_text_status_code") == "EXACT_TEXT_DIFF"
     )
     reachable_count = sum(1 for r in results if r["accessible"])
 
     return {
         "edition": updater.edition,
         "unity_set_digest": updater.unity_set_digest,
-        "verification_mode": "plain_text_export_visible_text",
+        "verification_mode": "plain_text_export_wording_and_exact_diff",
         "native_structure_verified": False,
         "native_verification_note": NATIVE_VERIFICATION_RESERVATION_NOTE,
         "root": root_checks,
@@ -587,9 +665,13 @@ def audit_drive_payload(
         "summary": {
             "total_targets": len(results),
             "reachable_targets": reachable_count,
-            "visible_text_matched_targets": visible_match_count,
-            "verified_targets": visible_match_count,
-            "all_visible_text_matched": visible_match_count == len(results) and root_accessible,
+            "wording_matched_targets": wording_match_count,
+            "exact_text_matched_targets": exact_text_match_count,
+            "exact_text_diff_targets": exact_text_diff_count,
+            "visible_text_matched_targets": exact_text_match_count,
+            "verified_targets": wording_match_count,
+            "all_wording_matched": wording_match_count == len(results) and root_accessible,
+            "all_visible_text_matched": exact_text_match_count == len(results) and root_accessible,
             "native_structure_verified": False,
         },
         "documents": results,
