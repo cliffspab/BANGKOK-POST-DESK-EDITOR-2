@@ -1544,7 +1544,130 @@ class UnityUpdaterTests(unittest.TestCase):
         self.assertEqual(res_missing["status_code"], "IDENTITY_ERROR")
         self.assertIsNotNone(res_missing["identity_error"])
 
+    def test_deterministic_processor_reproduces_r4_17_rivers_benchmark_exactly(self) -> None:
+        import sys
+
+        repo_root = CANDIDATE_ROOT.parents[1]
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
+        import bkp_processor
+
+        filing = (
+            "Floodwaters forced 850 residents from their homes in Mueang Ubon Ratchathani district on Sept 16, officials said.\n\n"
+            "Somchai Dee, the district chief, said the Mun River had risen 90 centimetres overnight and that shelters, food, and medicine were being provided. He said more rain is expected."
+        )
+        res = bkp_processor.process_editorial_job({
+            "mode": "EDIT",
+            "slug": "17-rivers",
+            "pub_date": "2026-09-17",
+            "placed": False,
+            "story_origin": "domestic",
+            "body": filing,
+        })
+        expected_body = (
+            "Floodwaters forced 850 residents from their homes in Muang Ubon Ratchathani district yesterday, officials said.\n\n"
+            "Somchai Dee, the district chief, said the Mun River had risen 90cm overnight and that shelters, food and medicine were being provided. Mr Somchai said more rain was expected."
+        )
+        self.assertEqual(res["edited_fields"]["body"], expected_body)
+        self.assertEqual(res["counts"]["body_input_chars"], 289)
+        self.assertEqual(res["counts"]["body_output_chars"], 285)
+        self.assertIn("Body: 289 > 285", res["formatted_return"])
+        self.assertIn("STYLE LOG", res["formatted_return"])
+        self.assertIn("ORIGINAL FILING", res["formatted_return"])
+        self.assertIn("OUTSTANDING: none", res["formatted_return"])
+        rule_ids = {entry["rule_id"] for entry in res["ledger"]}
+        self.assertTrue(
+            {
+                "TH-MUEANG",
+                "DATE-ALIGN",
+                "MEAS-METRIC",
+                "G1-OXFORD-COMMA",
+                "NAME-THAI-SECOND-REF",
+                "DATE-PAST-FUTURE",
+            }.issubset(rule_ids)
+        )
+
+    def test_deterministic_processor_enforces_two_source_anti_fabrication_and_arithmetic_gates(self) -> None:
+        import sys
+
+        repo_root = CANDIDATE_ROOT.parents[1]
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
+        import bkp_processor
+
+        # 1. Single source or URL or memory must be rejected by the [P2] Two-Source Gate
+        res_rejected = bkp_processor.process_editorial_job({
+            "mode": "EDIT",
+            "slug": "17-gate-test",
+            "pub_date": "2026-09-17",
+            "body": "Officials inspected 50% of the 800 drainage gates — or 450 gates — in Khlong Toey district.",
+            "fact_proposals": [
+                {
+                    "claim_before": "800 drainage gates",
+                    "claim_after": "900 drainage gates",
+                    "authority_mode": "two_sources",
+                    "source_1_publisher": "https://example.com/news",
+                    "source_1_record": "Web article",
+                    "source_2_publisher": "",
+                    "source_2_record": "",
+                }
+            ],
+        })
+        self.assertTrue(res_rejected["verification_gate"]["holds"])
+        self.assertTrue(res_rejected["verification_gate"]["rejected_fact_changes"])
+        self.assertEqual(res_rejected["verification_gate"]["approved_fact_changes"], [])
+        self.assertNotIn("900 drainage gates", res_rejected["edited_fields"]["body"])
+        self.assertIn("HOLD:", res_rejected["formatted_return"])
+
+        # 2. Two independent named sources (Publisher + Record/Report) pass the gate
+        res_approved = bkp_processor.process_editorial_job({
+            "mode": "EDIT",
+            "slug": "17-gate-pass",
+            "pub_date": "2026-09-17",
+            "body": "Officials inspected 400 drainage gates in Khlong Toey district.",
+            "fact_proposals": [
+                {
+                    "claim_before": "400 drainage gates",
+                    "claim_after": "420 drainage gates",
+                    "authority_mode": "two_sources",
+                    "source_1_publisher": "Bangkok Metropolitan Administration",
+                    "source_1_record": "Department of Drainage Daily Log Sept 17",
+                    "source_2_publisher": "Department of Disaster Prevention and Mitigation",
+                    "source_2_record": "Bangkok Flood Readiness Report 2026",
+                }
+            ],
+        })
+        self.assertEqual(res_approved["verification_gate"]["rejected_fact_changes"], [])
+        self.assertEqual(len(res_approved["verification_gate"]["approved_fact_changes"]), 1)
+        self.assertIn("420 drainage gates", res_approved["edited_fields"]["body"])
+        self.assertIn("FACT CHANGES", res_approved["formatted_return"])
+
+    def test_quotation_protection_and_non_divergent_return_schemas(self) -> None:
+        import sys
+
+        repo_root = CANDIDATE_ROOT.parents[1]
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
+        import bkp_processor
+
+        # Direct quote preserves US spelling ("center") inside quotes while adding [91cm] and converting "center" outside quotes
+        res = bkp_processor.process_editorial_job({
+            "mode": "EDIT",
+            "slug": "17-quote-bf",
+            "pub_date": "2026-09-17",
+            "placed": True,
+            "head": "Mr. Somchai inspects flood center",
+            "deck": "This deck must be suppressed because slug has bf",
+            "body": 'The operations center opened at 12:00 p.m. "Water rose 3 feet inside our center," he said.',
+        })
+        self.assertIn("The operations centre opened at noon.", res["edited_fields"]["body"])
+        self.assertIn('"Water rose 3 feet [91cm] inside our center,"', res["edited_fields"]["body"])
+        self.assertEqual(res["edited_fields"]["head"], "Somchai inspects flood centre")
+        self.assertEqual(res["edited_fields"]["deck"], "")
+        self.assertNotIn("###deck", res["formatted_return"])
+
 
 if __name__ == "__main__":
     unittest.main()
+
 

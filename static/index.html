@@ -31,12 +31,14 @@
       </a>
 
       <nav class="topbar-nav" aria-label="Primary Views">
-        <button class="nav-link active" data-tab="overview" type="button">Overview</button>
+        <button class="nav-link active" data-tab="processor" type="button">01. Desk Processor</button>
+        <button class="nav-link" data-tab="adapted-guide" type="button">02. Adapted Style Guide</button>
+        <button class="nav-link" data-tab="directory" type="button">03. Directory</button>
         <button class="nav-link" data-tab="skills" type="button">Routed Skills</button>
-        <button class="nav-link" data-tab="directory" type="button">Directory</button>
         <button class="nav-link" data-tab="unity" type="button">Unity 3.x Plan</button>
         <button class="nav-link" data-tab="drive" type="button">Google Drive Audit</button>
         <button class="nav-link" data-tab="decisions" type="button">Decisions</button>
+        <button class="nav-link" data-tab="overview" type="button">Overview</button>
       </nav>
 
       <div class="topbar-action" id="auth-header-slot">
@@ -71,7 +73,7 @@
         <div class="workspace-meta">
           <span class="meta-item">Edition <strong id="edition-badge" class="mono">Loading...</strong></span>
           <span aria-hidden="true">·</span>
-          <span class="meta-item">Scope <code class="mono">drive.readonly</code></span>
+          <span class="meta-item">Engine <strong class="mono">12-Pass Deterministic Processor</strong></span>
           <span aria-hidden="true">·</span>
           <span id="drive-connection-summary" class="meta-item">Google Drive: Not signed in (in-memory session only)</span>
         </div>
@@ -98,8 +100,281 @@
         <pre id="verification-output" class="code-output"></pre>
       </section>
 
-      <!-- TAB 1: OVERVIEW -->
-      <section id="tab-overview" class="tab-panel active">
+      <!-- TAB 01: DETERMINISTIC EDITORIAL CONTENT PROCESSOR (DEFAULT ACTIVE) -->
+      <section id="tab-processor" class="tab-panel active">
+        <div class="processor-preset-bar">
+          <div class="preset-select-group">
+            <label for="proc-preset-select">Load Newsroom Filing Preset:</label>
+            <select id="proc-preset-select"></select>
+          </div>
+          <div class="workspace-actions">
+            <button id="btn-run-processor" class="btn btn-primary" type="button">
+              Execute Deterministic Pass
+            </button>
+            <button id="btn-copy-deliverable" class="btn btn-secondary" type="button">
+              Copy Deliverable Return
+            </button>
+          </div>
+          <div id="proc-preset-desc" class="preset-desc-banner">
+            Deterministic 12-pass sub-editing workbench: automates Bangkok Post house style, Thai transliteration, second references, date alignment, [P1] glyph-weight copy fitting, and [P2] anti-fabrication gates.
+          </div>
+        </div>
+
+        <div class="workbench-grid">
+          <!-- LEFT COLUMN: INPUT FILING & [P2] TWO-SOURCE FACT CHANGE BUILDER -->
+          <div class="card">
+            <h2>Filed Copy &amp; Job Controls</h2>
+            <p class="card-desc">
+              Paste raw filed copy or a DC-X package. Every editorial decision is executed deterministically against <code>Blueprint/DETERMINISTIC_STYLE_GUIDE.md</code> and <code>Blueprint/DIRECTORY.yaml</code>.
+            </p>
+
+            <div class="form-grid-3">
+              <div class="field-group">
+                <label for="proc-mode">Job Mode</label>
+                <select id="proc-mode">
+                  <option value="EDIT" selected>EDIT (Sub-Edit Pass)</option>
+                  <option value="FIT">FIT (Placed Copy-Fit)</option>
+                  <option value="CHECK">CHECK (Proof Audit)</option>
+                  <option value="QC">QC (Quality Control)</option>
+                  <option value="PHOTO">PHOTO (Caption Desk)</option>
+                  <option value="MUGSHOT">MUGSHOT (Portrait Caption)</option>
+                  <option value="PR">PR (Commercial Placement)</option>
+                  <option value="FOLLOW-UP">FOLLOW-UP ([P1-C] Line Trim)</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="proc-slug">Job Slug (`ID:`)</label>
+                <input id="proc-slug" type="text" value="17-rivers" placeholder="e.g. 17-rivers or 17-flood-bf" />
+              </div>
+              <div class="field-group">
+                <label for="proc-pub-date">Publication Date</label>
+                <input id="proc-pub-date" type="date" value="2026-09-17" />
+              </div>
+            </div>
+
+            <div class="form-grid-3">
+              <div class="field-group">
+                <label for="proc-origin">Story Origin</label>
+                <select id="proc-origin">
+                  <option value="auto" selected>Auto-Detect (Domestic vs. Wire)</option>
+                  <option value="domestic">Domestic (Includes ORIGINAL FILING)</option>
+                  <option value="wire">International Wire (Omits ORIGINAL FILING)</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="proc-counts">Body Budget (`COUNTS`)</label>
+                <input id="proc-counts" type="text" placeholder="e.g. Body: 260-295" />
+              </div>
+              <label class="checkbox-inline">
+                <input id="proc-placed" type="checkbox" />
+                Placed Task (`###head` / `###byline`)
+              </label>
+            </div>
+
+            <div class="field-group">
+              <div class="field-label-row">
+                <label for="proc-head">Headline (`###head`)</label>
+                <span id="proc-head-meter" class="field-meter">0 chars · 0.0 glyph wt</span>
+              </div>
+              <input id="proc-head" type="text" placeholder="Optional headline (or auto-generated in ALTERNATES)" />
+            </div>
+
+            <div class="field-group" id="proc-deck-group">
+              <div class="field-label-row">
+                <label for="proc-deck">Deck / Standfirst (`###deck`)</label>
+                <span id="proc-deck-meter" class="field-meter">0 chars · 0.0 glyph wt</span>
+              </div>
+              <input id="proc-deck" type="text" placeholder="Optional deck (automatically suppressed for Briefs)" />
+            </div>
+
+            <div class="form-grid-2">
+              <div class="field-group">
+                <label for="proc-byline">Byline (`###byline`)</label>
+                <input id="proc-byline" type="text" placeholder="e.g. Post Reporters or Reuters" />
+              </div>
+              <div class="field-group">
+                <label for="proc-label">Topic Label (`###label`)</label>
+                <input id="proc-label" type="text" placeholder="e.g. Floods" />
+              </div>
+            </div>
+
+            <div class="form-grid-2 hidden" id="proc-photo-fields">
+              <div class="field-group">
+                <label for="proc-caption">Photo Caption Input</label>
+                <input id="proc-caption" type="text" placeholder="Raw wire or photographer caption..." />
+              </div>
+              <div class="field-group">
+                <label for="proc-credit">Photo Credit</label>
+                <input id="proc-credit" type="text" placeholder="e.g. Somchai Poomlard or Reuters" />
+              </div>
+            </div>
+
+            <div class="form-grid-2 hidden" id="proc-followup-fields">
+              <div class="field-group">
+                <label for="proc-followup-target">[P1-C] Target Slot</label>
+                <input id="proc-followup-target" type="text" value="Par 2" />
+              </div>
+              <div class="field-group">
+                <label for="proc-followup-delta">[P1-C] Line Fit Instruction</label>
+                <input id="proc-followup-delta" type="text" value="trim 1 line (-28 chars)" />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <div class="field-label-row">
+                <label for="proc-body">Filed Body Copy (`[P1-B]` Exact Line-Break-Stripped Count)</label>
+                <span id="proc-body-meter" class="field-meter">0 chars</span>
+              </div>
+              <textarea id="proc-body" class="mono-textarea" rows="8" placeholder="Paste filed story paragraphs here..."></textarea>
+            </div>
+
+            <!-- [P2] Two-Source Fact Change Gate Builder -->
+            <div class="fact-gate-box">
+              <div class="fact-gate-header">
+                <h3>[P2] Anti-Fabrication Gate — Propose Verified Fact Change</h3>
+                <button id="btn-clear-fact-proposal" class="btn-text-action" type="button">Clear</button>
+              </div>
+              <p class="meta-inline" style="margin: 0 0 0.6rem;">
+                Material fact changes are blocked unless backed by <strong>two independent named sources (Publisher + Record/Report)</strong>, copy-internal arithmetic, or explicit <code>per desk</code> authority. Single sources, URLs, the filing, the Post, search/AI summaries, Directory, and memory are rejected.
+              </p>
+              <div class="form-grid-3">
+                <div class="field-group">
+                  <label for="fact-before">Filed Claim (Before)</label>
+                  <input id="fact-before" type="text" placeholder="e.g. 850 residents" />
+                </div>
+                <div class="field-group">
+                  <label for="fact-after">Corrected Claim (After)</label>
+                  <input id="fact-after" type="text" placeholder="e.g. 920 residents" />
+                </div>
+                <div class="field-group">
+                  <label for="fact-auth-mode">Authority Basis</label>
+                  <select id="fact-auth-mode">
+                    <option value="two_sources" selected>Two Independent Named Sources</option>
+                    <option value="copy_internal_arithmetic">Copy-Internal Arithmetic</option>
+                    <option value="per_desk">Per Desk Instruction</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-grid-2" id="fact-sources-grid">
+                <div class="field-group">
+                  <label for="fact-s1-pub">Source 1 Publisher</label>
+                  <input id="fact-s1-pub" type="text" placeholder="e.g. Department of Disaster Prevention and Mitigation" />
+                </div>
+                <div class="field-group">
+                  <label for="fact-s1-rec">Source 1 Record / Report</label>
+                  <input id="fact-s1-rec" type="text" placeholder="e.g. Daily Situation Bulletin Sept 17" />
+                </div>
+                <div class="field-group">
+                  <label for="fact-s2-pub">Source 2 Publisher (Independent)</label>
+                  <input id="fact-s2-pub" type="text" placeholder="e.g. Ubon Ratchathani Provincial Office" />
+                </div>
+                <div class="field-group">
+                  <label for="fact-s2-rec">Source 2 Record / Report</label>
+                  <input id="fact-s2-rec" type="text" placeholder="e.g. Emergency Evacuation Log #4" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: LOCKED DELIVERABLE, TRANSFORMATION LEDGER & [P2] AUDIT -->
+          <div class="card">
+            <div class="viewer-header">
+              <div>
+                <h2>Locked Non-Divergent Return (`[R1]–[R4]`)</h2>
+                <p class="card-desc">
+                  Compiled deterministically. <code>STYLE LOG</code> is built exclusively from the immutable Transformation Ledger below.
+                </p>
+              </div>
+              <span id="proc-copy-status" class="meta-inline mono"></span>
+            </div>
+
+            <div class="telemetry-strip">
+              <div class="telemetry-cell">
+                <span class="metric-label">[P1-B] Body Count</span>
+                <strong id="tel-body-count">—</strong>
+              </div>
+              <div class="telemetry-cell">
+                <span class="metric-label">[P1-A] Head Weight</span>
+                <strong id="tel-head-weight">—</strong>
+              </div>
+              <div class="telemetry-cell">
+                <span class="metric-label">Ledger Mutations</span>
+                <strong id="tel-ledger-count">0 rules</strong>
+              </div>
+              <div class="telemetry-cell">
+                <span class="metric-label">[P2] Verification Gate</span>
+                <strong id="tel-gate-status">—</strong>
+              </div>
+              <div class="telemetry-cell">
+                <span class="metric-label">Story Classification</span>
+                <strong id="tel-story-origin">—</strong>
+              </div>
+            </div>
+
+            <div id="proc-gate-banner" class="gate-alert-banner clean">
+              Awaiting deterministic pass...
+            </div>
+
+            <pre id="proc-deliverable-output" class="deliverable-box"></pre>
+
+            <!-- Immutable Transformation Ledger -->
+            <h3 style="margin-top: 1.25rem;">Immutable Transformation Ledger (Proof of Zero Fake Procedural Steps)</h3>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Rule ID</th>
+                    <th>Slot</th>
+                    <th>Filed Token (Before)</th>
+                    <th>Deterministic Output (After)</th>
+                    <th>Blueprint / Directory Rule Basis</th>
+                  </tr>
+                </thead>
+                <tbody id="proc-ledger-tbody"></tbody>
+              </table>
+            </div>
+
+            <!-- [P2] Arithmetic, Watchlist & Session OUTSTANDING -->
+            <div class="two-col" style="margin-top: 1rem;">
+              <div>
+                <h3>[P2] Arithmetic &amp; Watchlist Audit</h3>
+                <div id="proc-p2-details" class="outstanding-list"></div>
+              </div>
+              <div>
+                <h3>Persistent Session `OUTSTANDING` Register</h3>
+                <div id="proc-outstanding-list" class="outstanding-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 02: ADAPTED DETERMINISTIC STYLE GUIDE -->
+      <section id="tab-adapted-guide" class="tab-panel">
+        <div class="card">
+          <div class="viewer-header">
+            <div>
+              <h2>Adapted Deterministic Editorial Style Guide (`/Blueprint/DETERMINISTIC_STYLE_GUIDE.md`)</h2>
+              <p class="card-desc">
+                Formal adaptation of the prose <code>Blueprint/BLUEPRINT.md</code> and <code>Blueprint/DIRECTORY.yaml</code> into an executable 12-pass state machine, pattern-to-replacement tables, hard Two-Source anti-fabrication gates, ledger-driven <code>STYLE LOG</code> compilation, and locked return schemas.
+              </p>
+            </div>
+          </div>
+          <div class="two-col">
+            <div>
+              <h3>Adapted Deterministic Specification (`DETERMINISTIC_STYLE_GUIDE.md`)</h3>
+              <pre id="adapted-guide-box" class="markdown-box tall" style="max-height: 680px;"></pre>
+            </div>
+            <div>
+              <h3>Original Prose Source (`Blueprint/BLUEPRINT.md` — Preserved for Unity Witness Parity)</h3>
+              <pre id="prose-blueprint-box" class="markdown-box tall" style="max-height: 680px;"></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB OVERVIEW -->
+      <section id="tab-overview" class="tab-panel">
         <div class="metrics-grid">
           <div class="metric-card">
             <span class="metric-label">Master Source</span>
@@ -543,7 +818,7 @@
 
       document.getElementById("brand-home-link").addEventListener("click", (e) => {
         e.preventDefault();
-        switchTab("overview");
+        switchTab("processor");
       });
 
       // Diff view mode segmented control
@@ -1898,7 +2173,366 @@
           .join("");
       }
 
+      // -----------------------------------------------------------------------
+      // Deterministic Editorial Content Processor Workbench Controller
+      // -----------------------------------------------------------------------
+      const LEAN_GLYPH_SET = new Set(" ,.;:'\"!|-()[]/1fijlrtIJ".split(""));
+      const HEAVY_GLYPH_SET = new Set("mwMW@%&—–".split(""));
+
+      function computeClientGlyphWeight(str) {
+        const clean = String(str ?? "").trim();
+        let weight = 0;
+        for (const ch of clean) {
+          if (LEAN_GLYPH_SET.has(ch)) weight += 0.5;
+          else if (HEAVY_GLYPH_SET.has(ch)) weight += 1.5;
+          else weight += 1.0;
+        }
+        return { chars: clean.length, weight: weight.toFixed(1) };
+      }
+
+      function computeClientBodyChars(str) {
+        return String(str ?? "").replace(/\r?\n/g, "").trim().length;
+      }
+
+      function updateLiveFieldMeters() {
+        const headVal = document.getElementById("proc-head").value;
+        const deckVal = document.getElementById("proc-deck").value;
+        const bodyVal = document.getElementById("proc-body").value;
+        const slugVal = document.getElementById("proc-slug").value;
+        const modeVal = document.getElementById("proc-mode").value;
+
+        const hm = computeClientGlyphWeight(headVal);
+        const dm = computeClientGlyphWeight(deckVal);
+        const bc = computeClientBodyChars(bodyVal);
+
+        document.getElementById("proc-head-meter").textContent = `${hm.chars} chars · ${hm.weight} glyph wt`;
+        const isBrief = /(?:^|[-_\s])(?:bf|brief)(?:$|[-_\s])/i.test(slugVal);
+        const deckGroup = document.getElementById("proc-deck-group");
+        if (isBrief) {
+          document.getElementById("proc-deck-meter").textContent = "Suppressed (Brief slug 'bf' = Head only)";
+          deckGroup.style.opacity = "0.55";
+        } else {
+          document.getElementById("proc-deck-meter").textContent = `${dm.chars} chars · ${dm.weight} glyph wt`;
+          deckGroup.style.opacity = "1";
+        }
+        document.getElementById("proc-body-meter").textContent = `${bc} chars ([P1-B] exact)`;
+
+        document
+          .getElementById("proc-photo-fields")
+          .classList.toggle("hidden", modeVal !== "PHOTO" && modeVal !== "MUGSHOT");
+        document
+          .getElementById("proc-followup-fields")
+          .classList.toggle("hidden", modeVal !== "FOLLOW-UP");
+      }
+
+      ["proc-head", "proc-deck", "proc-body", "proc-slug", "proc-mode"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener("input", updateLiveFieldMeters);
+          el.addEventListener("change", updateLiveFieldMeters);
+        }
+      });
+
+      let editorialPresets = [];
+
+      function applyEditorialPreset(preset) {
+        if (!preset) return;
+        document.getElementById("proc-mode").value = preset.mode || "EDIT";
+        document.getElementById("proc-slug").value = preset.slug || "17-rivers";
+        document.getElementById("proc-pub-date").value = preset.pub_date || "2026-09-17";
+        document.getElementById("proc-origin").value = preset.story_origin || "auto";
+        document.getElementById("proc-counts").value = preset.counts || "";
+        document.getElementById("proc-placed").checked = Boolean(preset.placed);
+        document.getElementById("proc-head").value = preset.head || "";
+        document.getElementById("proc-deck").value = preset.deck || "";
+        document.getElementById("proc-byline").value = preset.byline || "";
+        document.getElementById("proc-label").value = preset.label || "";
+        document.getElementById("proc-caption").value = preset.caption || "";
+        document.getElementById("proc-credit").value = preset.credit || "";
+        document.getElementById("proc-body").value = preset.body || "";
+        document.getElementById("proc-preset-desc").textContent = preset.description || "";
+        updateLiveFieldMeters();
+      }
+
+      async function runEditorialProcessor() {
+        const btn = document.getElementById("btn-run-processor");
+        btn.disabled = true;
+        btn.textContent = "Processing...";
+        try {
+          const originVal = document.getElementById("proc-origin").value;
+          const factBefore = document.getElementById("fact-before").value.trim();
+          const factAfter = document.getElementById("fact-after").value.trim();
+          const factProposals = [];
+          if (factBefore || factAfter) {
+            factProposals.push({
+              claim_before: factBefore,
+              claim_after: factAfter,
+              authority_mode: document.getElementById("fact-auth-mode").value,
+              source_1_publisher: document.getElementById("fact-s1-pub").value.trim(),
+              source_1_record: document.getElementById("fact-s1-rec").value.trim(),
+              source_2_publisher: document.getElementById("fact-s2-pub").value.trim(),
+              source_2_record: document.getElementById("fact-s2-rec").value.trim(),
+            });
+          }
+
+          const payload = {
+            mode: document.getElementById("proc-mode").value,
+            slug: document.getElementById("proc-slug").value.trim(),
+            pub_date: document.getElementById("proc-pub-date").value,
+            story_origin: originVal === "auto" ? null : originVal,
+            counts: document.getElementById("proc-counts").value.trim(),
+            placed: document.getElementById("proc-placed").checked,
+            head: document.getElementById("proc-head").value,
+            deck: document.getElementById("proc-deck").value,
+            byline: document.getElementById("proc-byline").value,
+            label: document.getElementById("proc-label").value,
+            caption: document.getElementById("proc-caption").value,
+            credit: document.getElementById("proc-credit").value,
+            body: document.getElementById("proc-body").value,
+            followup_target: document.getElementById("proc-followup-target").value,
+            followup_delta: document.getElementById("proc-followup-delta").value,
+            fact_proposals: factProposals,
+          };
+
+          const res = await fetch("/api/process", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+          if (!res.ok || data.error) {
+            throw new Error(data.error || `HTTP ${res.status}`);
+          }
+          renderProcessorResult(data);
+        } catch (err) {
+          document.getElementById("proc-deliverable-output").textContent =
+            `Processor Error: ${err.message || String(err)}`;
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Execute Deterministic Pass";
+        }
+      }
+
+      function renderProcessorResult(data) {
+        const counts = data.counts || {};
+        const vGate = data.verification_gate || {};
+        const holds = vGate.holds || [];
+        const queries = vGate.queries || [];
+        const ledger = data.ledger || [];
+
+        document.getElementById("tel-body-count").textContent =
+          `${counts.body_input_chars} > ${counts.body_output_chars} (${counts.body_delta_chars >= 0 ? "+" : ""}${counts.body_delta_chars})`;
+
+        const hInfo = counts.head || { chars: 0, weight: 0 };
+        const altHead = data.alternates?.heads?.[0] || hInfo;
+        document.getElementById("tel-head-weight").textContent =
+          hInfo.chars > 0
+            ? `${hInfo.chars}c / ${hInfo.weight}wt`
+            : `Alt: ${altHead.chars}c / ${altHead.weight}wt`;
+
+        document.getElementById("tel-ledger-count").textContent = `${ledger.length} rules fired`;
+
+        const gateEl = document.getElementById("tel-gate-status");
+        const bannerEl = document.getElementById("proc-gate-banner");
+        bannerEl.classList.remove("hold", "query", "clean");
+        if (holds.length > 0) {
+          gateEl.innerHTML = `<span class="status-fail">${holds.length} HOLD</span>`;
+          bannerEl.classList.add("hold");
+          bannerEl.textContent = `HOLD GATE TRIGGERED: ${holds.join(" | ")}`;
+        } else if (queries.length > 0) {
+          gateEl.innerHTML = `<span class="status-warn">${queries.length} Query</span>`;
+          bannerEl.classList.add("query");
+          bannerEl.textContent = `QUERY GATE TRIGGERED: ${queries.join(" | ")}`;
+        } else {
+          gateEl.innerHTML = `<span class="status-pass">PASS (Cleared)</span>`;
+          bannerEl.classList.add("clean");
+          bannerEl.textContent =
+            `[P2] Gate Cleared: 0 arithmetic discrepancies, 0 unverified fact mutations, 0 unresolved watchlist conflicts. Return schema locked to ${data.mode}.`;
+        }
+
+        document.getElementById("tel-story-origin").textContent = data.is_domestic
+          ? "Domestic (+ORIGINAL FILING)"
+          : `Wire (${data.detected_wire_agency || "Omit ORIGINAL FILING"})`;
+
+        document.getElementById("proc-deliverable-output").textContent = data.formatted_return || "";
+
+        // Render Immutable Transformation Ledger
+        const ledgerTbody = document.getElementById("proc-ledger-tbody");
+        if (!ledger.length) {
+          ledgerTbody.innerHTML = `<tr><td colspan="5" class="muted">No token mutations required — filed copy already conforms to all deterministic rules.</td></tr>`;
+        } else {
+          ledgerTbody.innerHTML = ledger
+            .map(
+              (item) => `
+              <tr>
+                <td><code class="mono"><strong>${escapeHtml(item.rule_id)}</strong></code></td>
+                <td class="mono">${escapeHtml(item.location)}</td>
+                <td><code class="mono status-fail">${escapeHtml(item.before)}</code></td>
+                <td><code class="mono status-pass">${escapeHtml(item.after)}</code></td>
+                <td>${escapeHtml(item.note)}</td>
+              </tr>`
+            )
+            .join("");
+        }
+
+        // Render [P2] Arithmetic & Watchlist Audit
+        const p2Box = document.getElementById("proc-p2-details");
+        const p2Rows = [];
+        (vGate.arithmetic_checks || []).forEach((ac) => {
+          p2Rows.push(`
+            <div class="outstanding-row">
+              <div>
+                <strong class="${ac.passed ? "status-pass" : "status-fail"}">${ac.passed ? "ARITHMETIC OK" : "ARITHMETIC HOLD"}</strong>
+                · <code class="mono">${escapeHtml(ac.expression)}</code>
+                (Expected: ${escapeHtml(ac.expected)}, Observed: ${escapeHtml(ac.observed)})
+              </div>
+            </div>
+          `);
+        });
+        (vGate.watchlist_hits || []).forEach((wh) => {
+          p2Rows.push(`
+            <div class="outstanding-row">
+              <div>
+                <strong class="status-warn">WATCHLIST HIT</strong> · <strong>${escapeHtml(wh.name)}</strong>: ${escapeHtml(wh.ruling)}
+              </div>
+            </div>
+          `);
+        });
+        (vGate.approved_fact_changes || []).forEach((fc) => {
+          p2Rows.push(`
+            <div class="outstanding-row">
+              <div>
+                <strong class="status-pass">TWO-SOURCE VERIFIED</strong> · <span class="mono">${escapeHtml(fc)}</span>
+              </div>
+            </div>
+          `);
+        });
+        (vGate.rejected_fact_changes || []).forEach((rfc) => {
+          p2Rows.push(`
+            <div class="outstanding-row">
+              <div>
+                <strong class="status-fail">FACT CHANGE BLOCKED</strong> · <code class="mono">${escapeHtml(rfc.claim_before)} &gt; ${escapeHtml(rfc.claim_after)}</code> — ${escapeHtml(rfc.reason)}
+              </div>
+            </div>
+          `);
+        });
+        if (!p2Rows.length) {
+          p2Box.innerHTML = `<div class="outstanding-row"><span class="status-pass">All [P2] arithmetic, watchlist, and mortality checks passed with 0 alerts.</span></div>`;
+        } else {
+          p2Box.innerHTML = p2Rows.join("");
+        }
+
+        renderOutstandingRegister(data.session_outstanding_all || {});
+      }
+
+      function renderOutstandingRegister(sessionMap) {
+        const container = document.getElementById("proc-outstanding-list");
+        const entries = [];
+        Object.entries(sessionMap || {}).forEach(([slugKey, items]) => {
+          (items || []).forEach((item, idx) => {
+            entries.push({ slug: slugKey, index: idx, text: item });
+          });
+        });
+
+        if (!entries.length) {
+          container.innerHTML = `<div class="outstanding-row"><span class="status-pass">OUTSTANDING: none (All session jobs cleared)</span></div>`;
+          return;
+        }
+
+        container.innerHTML = entries
+          .map(
+            (e) => `
+            <div class="outstanding-row">
+              <div>
+                <code class="mono"><strong>${escapeHtml(e.slug)}</strong></code> · ${escapeHtml(e.text)}
+              </div>
+              <button type="button" class="btn-text-action" data-resolve-slug="${escapeHtml(e.slug)}" data-resolve-idx="${e.index}">
+                Resolve
+              </button>
+            </div>`
+          )
+          .join("");
+
+        container.querySelectorAll("[data-resolve-slug]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const s = btn.getAttribute("data-resolve-slug");
+            const i = parseInt(btn.getAttribute("data-resolve-idx"), 10);
+            const res = await fetch("/api/outstanding/resolve", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ slug: s, index: i }),
+            });
+            const outData = await res.json();
+            renderOutstandingRegister(outData.session_outstanding_all || {});
+          });
+        });
+      }
+
+      async function loadPresetsAndInitProcessor() {
+        try {
+          const res = await fetch("/api/presets");
+          const data = await res.json();
+          editorialPresets = data.presets || [];
+          const select = document.getElementById("proc-preset-select");
+          select.innerHTML = editorialPresets
+            .map((p, idx) => `<option value="${escapeHtml(p.id)}" ${idx === 0 ? "selected" : ""}>${escapeHtml(p.title)}</option>`)
+            .join("");
+
+          select.addEventListener("change", () => {
+            const chosen = editorialPresets.find((p) => p.id === select.value);
+            if (chosen) {
+              applyEditorialPreset(chosen);
+              runEditorialProcessor();
+            }
+          });
+
+          if (editorialPresets.length > 0) {
+            applyEditorialPreset(editorialPresets[0]);
+            await runEditorialProcessor();
+          }
+        } catch (err) {
+          console.error("Failed to load editorial presets:", err);
+        }
+      }
+
+      async function loadAdaptedStyleGuide() {
+        try {
+          const res = await fetch("/api/deterministic-guide");
+          const data = await res.json();
+          document.getElementById("adapted-guide-box").textContent = data.deterministic_guide || "";
+          document.getElementById("prose-blueprint-box").textContent = data.prose_blueprint || "";
+          renderOutstandingRegister(data.session_outstanding || {});
+        } catch (err) {
+          console.error("Failed to load adapted deterministic style guide:", err);
+        }
+      }
+
+      document.getElementById("btn-run-processor").addEventListener("click", runEditorialProcessor);
+
+      document.getElementById("btn-copy-deliverable").addEventListener("click", async () => {
+        const text = document.getElementById("proc-deliverable-output").textContent || "";
+        const statusEl = document.getElementById("proc-copy-status");
+        try {
+          await navigator.clipboard.writeText(text);
+          statusEl.textContent = "Copied deliverable to clipboard!";
+          setTimeout(() => {
+            statusEl.textContent = "";
+          }, 2500);
+        } catch (_err) {
+          statusEl.textContent = "Select copy box text and press Ctrl+C";
+        }
+      });
+
+      document.getElementById("btn-clear-fact-proposal").addEventListener("click", () => {
+        ["fact-before", "fact-after", "fact-s1-pub", "fact-s1-rec", "fact-s2-pub", "fact-s2-rec"].forEach((id) => {
+          document.getElementById(id).value = "";
+        });
+        runEditorialProcessor();
+      });
+
       initFirebaseWorkspaceAuth();
+      loadPresetsAndInitProcessor();
+      loadAdaptedStyleGuide();
       loadOverview();
       loadSkills();
       loadDirectory();

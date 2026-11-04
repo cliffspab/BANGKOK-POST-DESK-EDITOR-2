@@ -745,6 +745,22 @@ class DeskRequestHandler(BaseHTTPRequestHandler):
             except Exception as exc:
                 self._send_json({"error": str(exc)}, status=500)
             return
+        if route == "/api/presets":
+            from bkp_processor import get_editorial_presets
+
+            self._send_json({"presets": get_editorial_presets()})
+            return
+        if route == "/api/deterministic-guide":
+            from bkp_processor import SESSION_OUTSTANDING_STORE
+
+            guide_md = _read_text(BLUEPRINT_DIR / "DETERMINISTIC_STYLE_GUIDE.md")
+            prose_blueprint = _read_text(BLUEPRINT_DIR / "BLUEPRINT.md")
+            self._send_json({
+                "deterministic_guide": guide_md,
+                "prose_blueprint": prose_blueprint,
+                "session_outstanding": SESSION_OUTSTANDING_STORE,
+            })
+            return
 
         zip_match = re.fullmatch(r"/api/upload/(boot|edit|check|photo|pr)\.zip", route)
         if zip_match:
@@ -767,6 +783,36 @@ class DeskRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
         route = parsed.path
+
+        if route == "/api/process":
+            try:
+                from bkp_processor import process_editorial_job
+
+                payload = self._read_json_body()
+                result = process_editorial_job(payload)
+                self._send_json(result)
+            except Exception as exc:
+                self._send_json({"error": str(exc)}, status=500)
+            return
+
+        if route == "/api/outstanding/resolve":
+            try:
+                from bkp_processor import SESSION_OUTSTANDING_STORE
+
+                payload = self._read_json_body()
+                slug = str(payload.get("slug") or "").strip()
+                item_idx = payload.get("index")
+                if payload.get("clear_all"):
+                    SESSION_OUTSTANDING_STORE.clear()
+                elif slug in SESSION_OUTSTANDING_STORE:
+                    if item_idx is None:
+                        SESSION_OUTSTANDING_STORE[slug] = []
+                    elif isinstance(item_idx, int) and 0 <= item_idx < len(SESSION_OUTSTANDING_STORE[slug]):
+                        SESSION_OUTSTANDING_STORE[slug].pop(item_idx)
+                self._send_json({"session_outstanding_all": SESSION_OUTSTANDING_STORE})
+            except Exception as exc:
+                self._send_json({"error": str(exc)}, status=500)
+            return
 
         if route == "/api/verify/blueprint":
             proc = subprocess.run(
