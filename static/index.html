@@ -220,6 +220,7 @@
               </button>
             </div>
           </div>
+          <div id="unity-plan-error" class="inline-error-banner hidden" role="alert"></div>
           <div class="table-wrap">
             <table class="data-table">
               <thead>
@@ -302,7 +303,7 @@
               <div class="engine-select-wrap">
                 <label for="audit-engine-mode">Comparison Processing:</label>
                 <select id="audit-engine-mode">
-                  <option value="browser">In-Browser Only (Never leaves browser)</option>
+                  <option value="browser" selected>In-Browser Only (Never leaves browser)</option>
                   <option value="backend">Python Server (unity_update.py backend)</option>
                 </select>
               </div>
@@ -311,6 +312,8 @@
               </button>
             </div>
           </div>
+
+          <div id="drive-audit-error" class="inline-error-banner hidden" role="alert"></div>
 
           <div id="drive-root-summary" class="hierarchy-bar">
             <span>Root Folder: <code>BKP 3.0 Live</code> (<code>17KYiUX-VvCY5LWOKnENKoolGgRHT-bR6</code>)</span>
@@ -458,6 +461,7 @@
         skills: [],
         selectedSkill: "boot",
         unityPlan: null,
+        unityPlanError: null,
         unityConfig: null,
         decisions: [],
         user: null,
@@ -466,14 +470,14 @@
         activeDiffRecord: null,
       };
 
-      // Configure default comparison mode & visible data boundary disclosure
+      // Configure default comparison mode (browser-only is always the default) & visible data boundary disclosure
       const engineSelect = document.getElementById("audit-engine-mode");
+      engineSelect.value = "browser";
       const boundaryNotice = document.getElementById("data-boundary-notice");
       if (isLocalhost) {
         boundaryNotice.innerHTML =
-          `<strong>Document Body Processing (Localhost):</strong> Running on <code class="mono">${window.location.hostname}</code>. Both In-Browser comparison and the local Python backend keep exported Google Docs bodies strictly on your computer.`;
+          `<strong>Document Body Processing (Localhost):</strong> Running on <code class="mono">${window.location.hostname}</code>. Defaults to <strong>In-Browser Only</strong>; if switched to Python Server, exported Google Docs bodies are processed strictly on your local computer.`;
       } else {
-        engineSelect.value = "browser";
         boundaryNotice.innerHTML =
           `<strong>Document Body Processing (Hosted Preview):</strong> Running on <code class="mono">${window.location.hostname}</code>. Defaults to <strong>In-Browser Only</strong> so exported Google Docs bodies never leave your browser; switching to Python Server sends exported bodies to the hosted backend for comparison.`;
       }
@@ -484,6 +488,38 @@
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;");
+      }
+
+      function setUnityPlanError(message) {
+        state.unityPlanError = message || null;
+        const unityErrEl = document.getElementById("unity-plan-error");
+        const driveErrEl = document.getElementById("drive-audit-error");
+        if (message) {
+          const formatted = `Unity Plan Error: ${message}`;
+          unityErrEl.textContent = formatted;
+          unityErrEl.classList.remove("hidden");
+          driveErrEl.textContent = formatted;
+          driveErrEl.classList.remove("hidden");
+        } else {
+          unityErrEl.textContent = "";
+          unityErrEl.classList.add("hidden");
+        }
+      }
+
+      function setDriveAuditError(message) {
+        const driveErrEl = document.getElementById("drive-audit-error");
+        const unityErrEl = document.getElementById("unity-plan-error");
+        if (message) {
+          driveErrEl.textContent = message;
+          driveErrEl.classList.remove("hidden");
+          if (document.getElementById("tab-unity").classList.contains("active")) {
+            unityErrEl.textContent = message;
+            unityErrEl.classList.remove("hidden");
+          }
+        } else if (!state.unityPlanError) {
+          driveErrEl.textContent = "";
+          driveErrEl.classList.add("hidden");
+        }
       }
 
       // Navigation tabs
@@ -593,6 +629,7 @@
           console.error("Google sign-in error:", err);
           errBox.textContent = `Google Sign-In failed: ${err.message || String(err)}`;
           errBox.classList.remove("hidden");
+          setDriveAuditError(`Google Sign-In failed: ${err.message || String(err)}`);
         } finally {
           isSigningIn = false;
         }
@@ -666,7 +703,6 @@
         const lines = [`--- ${fromLabel}`, `+++ ${toLabel}`];
         let added = 0;
         let removed = 0;
-        const maxLen = Math.max(a.length, b.length);
         let i = 0;
         let j = 0;
         while (i < a.length || j < b.length) {
@@ -855,6 +891,7 @@
 
       // Execute full read-only audit of BKP 3.0 Live folder + 7 permanent Google Docs
       async function runLiveDriveAudit() {
+        setDriveAuditError(null);
         if (!cachedAccessToken) {
           switchTab("drive");
           await handleGoogleSignIn();
@@ -874,6 +911,12 @@
         try {
           if (!state.unityPlan) {
             await loadUnityPlan();
+          }
+          if (!state.unityPlan) {
+            throw new Error(
+              state.unityPlanError ||
+                "Local Unity plan failed to load; resolve the local source hash mismatch before running a live Drive audit."
+            );
           }
           const rootId = state.unityPlan?.root?.id || "17KYiUX-VvCY5LWOKnENKoolGgRHT-bR6";
           const docs = state.unityPlan?.documents || [];
@@ -976,7 +1019,12 @@
                 documents: docsObs,
               }),
             });
-            auditData = await auditRes.json();
+            auditData = await auditRes.json().catch(() => ({}));
+            if (!auditRes.ok || auditData.error) {
+              throw new Error(
+                auditData.error || auditData.detail || `Backend audit failed (HTTP ${auditRes.status})`
+              );
+            }
           }
 
           state.driveAudit = auditData;
@@ -1001,6 +1049,7 @@
           }
         } catch (err) {
           console.error("Drive audit failed:", err);
+          setDriveAuditError(`Drive Audit Failed: ${err.message || String(err)}`);
         } finally {
           if (auditBtn) {
             auditBtn.disabled = false;
@@ -1609,37 +1658,77 @@
       document.getElementById("dir-branch").addEventListener("change", loadDirectory);
 
       async function loadUnityPlan() {
-        const res = await fetch("/api/unity/plan");
-        if (!res.ok) return;
-        const data = await res.json();
-        state.unityPlan = data;
-        document.getElementById("unity-meta").innerHTML = `
-          <span>Root: ${escapeHtml(data.root?.title || "BKP 3.0 Live")}</span>
-          <span aria-hidden="true">·</span>
-          <span>Set: ${(data.unity_set_digest || "").slice(0, 14)}…</span>
-          <span aria-hidden="true">·</span>
-          <span>Plan: ${(data.plan_digest || "").slice(0, 14)}…</span>
-        `;
-        renderUnityTable();
-        renderDriveAuditTable();
-        const firstPlanDoc = (data.documents || [])[0];
-        if (firstPlanDoc && !state.activeDiffRecord) {
-          selectDiffRecord({
-            role: firstPlanDoc.role,
-            title: firstPlanDoc.title,
-            document_id: firstPlanDoc.document_id,
-            accessible: false,
-            status_code: "UNAUDITED",
-            status_label: "Local Desired Projection Preview",
-            desired_text: firstPlanDoc.desired_text || "",
-            observed_text: "",
-            diff: { added: 0, removed: 0, unified_lines: [] },
-            checks: {},
-            hashes: {
-              desired_text_sha256: firstPlanDoc.desired_text_sha256,
-              desired_source_projection_sha256: firstPlanDoc.desired_source_projection_sha256,
-            },
-          });
+        try {
+          const res = await fetch("/api/unity/plan");
+          let data = null;
+          try {
+            data = await res.json();
+          } catch (_parseErr) {
+            data = null;
+          }
+          if (!res.ok || (data && data.error)) {
+            const errMsg =
+              (data && (data.error || data.detail)) ||
+              `HTTP ${res.status} loading /api/unity/plan`;
+            state.unityPlan = null;
+            setUnityPlanError(errMsg);
+            document.getElementById("unity-meta").innerHTML = `<span class="status-fail">Plan Error: ${escapeHtml(errMsg)}</span>`;
+            const unityTbody = document.getElementById("unity-table-body");
+            if (unityTbody) {
+              unityTbody.innerHTML = `<tr><td colspan="10" class="status-fail mono">Local Unity Plan Failed: ${escapeHtml(errMsg)}</td></tr>`;
+            }
+            const driveTbody = document.getElementById("drive-audit-tbody");
+            if (driveTbody && !state.driveAudit) {
+              driveTbody.innerHTML = `<tr><td colspan="9" class="status-fail mono">Local Unity Plan Failed: ${escapeHtml(errMsg)}</td></tr>`;
+            }
+            return null;
+          }
+
+          state.unityPlan = data;
+          setUnityPlanError(null);
+          document.getElementById("unity-meta").innerHTML = `
+            <span>Root: ${escapeHtml(data.root?.title || "BKP 3.0 Live")}</span>
+            <span aria-hidden="true">·</span>
+            <span>Set: ${(data.unity_set_digest || "").slice(0, 14)}…</span>
+            <span aria-hidden="true">·</span>
+            <span>Plan: ${(data.plan_digest || "").slice(0, 14)}…</span>
+          `;
+          renderUnityTable();
+          renderDriveAuditTable();
+          const firstPlanDoc = (data.documents || [])[0];
+          if (firstPlanDoc && !state.activeDiffRecord) {
+            selectDiffRecord({
+              role: firstPlanDoc.role,
+              title: firstPlanDoc.title,
+              document_id: firstPlanDoc.document_id,
+              accessible: false,
+              status_code: "UNAUDITED",
+              status_label: "Local Desired Projection Preview",
+              desired_text: firstPlanDoc.desired_text || "",
+              observed_text: "",
+              diff: { added: 0, removed: 0, unified_lines: [] },
+              checks: {},
+              hashes: {
+                desired_text_sha256: firstPlanDoc.desired_text_sha256,
+                desired_source_projection_sha256: firstPlanDoc.desired_source_projection_sha256,
+              },
+            });
+          }
+          return data;
+        } catch (err) {
+          const errMsg = err?.message || String(err);
+          state.unityPlan = null;
+          setUnityPlanError(errMsg);
+          document.getElementById("unity-meta").innerHTML = `<span class="status-fail">Plan Error: ${escapeHtml(errMsg)}</span>`;
+          const unityTbody = document.getElementById("unity-table-body");
+          if (unityTbody) {
+            unityTbody.innerHTML = `<tr><td colspan="10" class="status-fail mono">Local Unity Plan Failed: ${escapeHtml(errMsg)}</td></tr>`;
+          }
+          const driveTbody = document.getElementById("drive-audit-tbody");
+          if (driveTbody && !state.driveAudit) {
+            driveTbody.innerHTML = `<tr><td colspan="9" class="status-fail mono">Local Unity Plan Failed: ${escapeHtml(errMsg)}</td></tr>`;
+          }
+          return null;
         }
       }
 

@@ -322,6 +322,20 @@ body {
   border-color: var(--fail-border);
 }
 
+.inline-error-banner {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--fail-border);
+  background: var(--fail-bg);
+  color: var(--fail-ink);
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
 .verification-header {
   display: flex;
   justify-content: space-between;

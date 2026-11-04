@@ -1,1 +1,5 @@
-* text=auto
+* text=auto eol=lf
+*.docx binary
+*.pdf binary
+*.zip binary
+*.pyc binary
