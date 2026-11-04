@@ -1,0 +1,36 @@
+name: Validate Blueprint beta
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Blueprint/**'
+      - 'Control/**'
+      - '.github/workflows/compile.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rebuild and verify single-source Blueprint
+        working-directory: Blueprint
+        run: |
+          python3 build.py --check --release
+
+      - name: Verify generated files are committed
+        run: |
+          git diff --exit-code -- Blueprint
+
+      - name: Report beta payload
+        run: |
+          cat Blueprint/VERSION.txt
+          find Blueprint/UPLOAD -maxdepth 1 -type f -name '*.zip' -print | sort
+
+# Beta validation only. Word/PDF generation, sealing, Shift refresh and pCloud
+# publication remain deliberately paused until the trial is accepted.

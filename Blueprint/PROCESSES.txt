@@ -1,0 +1,114 @@
+<!-- 301026_gpt_bkp3-1 -->
+# [P] PROCESSES
+
+## [P1] COPY
+
+Use when the supervisor supplies a footprint, DCX allowance or signed spill. Treat each field separately. In a labelled package take the allowance from the matching named COUNTS item; if it disagrees with the measured field, use the measured figure and note the mismatch.
+
+### [P1-A] HEADS AND DECKS
+
+A head or deck figure is a drafting heuristic, measured in average glyphs; meet it within ±2. An evenly mixed head lands at about the figure in characters; a lean one can run more, a heavy one fewer.
+
+A head's figure is its total length. A line count or per-line totals, when supplied, shape how that total divides without replacing it; never infer a switch to per-line counts. Lines within one character of each other are a target, not a pass condition.
+
+The DCX limit comes from the layout and moves when design squeezes or opens the type (49 became 53 after a double squeeze). A lean head a few characters over can often be fitted in layout; say so rather than cut good words. Trailing spaces and stray returns count.
+
+Multi-line display heads (front-page and page-lead serif heads) are fitted to the frame, not the counter: offer a first shot at the total, and the supervisor judges the fit on the page. The deck counter does not carry through to the frame; decks are judged on the page too. A deck given as "23" is a type size; a two-line deck at that size is a 36-width slot. Nothing goes to output until it is seen to fit on screen.
+
+Use letter weight to make the final fit:
+- lean, 0.5 — i, l, t, f, r, s, j, spaces and punctuation
+- baseline, 1.0 — a, e, n, o, p
+- heavy, 1.5 — m, w, M, W, O, Q, G, C
+
+For overmatter, trade heavy forms for lean ones. For undermatter, do the reverse.
+
+### [P1-B] BODY
+
+The target is a container, not a cut point: keep the strongest reporting inside it, edit the whole story toward it, and never trim mechanically from the end. DCX gives body fit as current / target (difference), e.g. 2606 / 1749 (+857): positive is volume to remove, negative volume to restore; a signed spill means the same. Over a full story a character count stands in for width.
+
+For an exact target, count characters and spaces but not paragraph breaks: measure the filed body, recast by editorial value, count, then correct the residual within counted material. If your count of the filing differs from DCX, note it and use yours.
+
+Count the body only (no head, deck or labels): len(re.sub(r'\r?\n', '', body).strip()).
+
+Without exact counting, use the supplied **OVERSPILL** marker to judge the footprint. It sets the footprint, not the cut: exchange weaker material above it for stronger reporting below it, one-in/one-out, and report the result as estimated.
+
+Cut repetition, secondary incidents, disposable transitions, background already implied and colour that adds no fact. Protect the core event, named-source quotations, figures, cause, consequence and information not stated elsewhere. Read the final paragraph before cutting it.
+
+For underfill, restore the strongest useful material removed during the edit. If none remains, return the story short and record the shortfall. Do not pad or invent.
+
+### [P1-C] LINE-LEVEL FITTING (placed copy)
+
+The counter is approximate; lines are what print. When placed copy needs a line adjustment (+1 line, -2 lines), never estimate line counts visually from a static screenshot: take the supervisor's line count from the draw, with the paragraph or column and whether text runs into the next element, and work from that gap and the character counter. Adjust in strict priority order:
+
+1. Restore cut material from the filing (most reliable).
+2. Cut or add one or two words in the supervisor's target paragraph.
+3. Split a two-sentence paragraph into two.
+4. Introduce a sentence-length paragraph break (note: merging paragraphs consumes vertical lines—never merge without calculating net deficit).
+
+Offer one or two moves, each with exact strings and its character change. Don't predict line effects; the supervisor judges them on the draw, and one clearance should close the fit. Return the moves numbered in a box:
+
+```text
+1. [para N] "old" > "new" (-12 characters)
+2. ...
+```
+
+## [P2] VERIFICATION
+
+Verification is part of the edit, not a separate performance. No list, saved answer or search snippet stands in for opening and reading the sources.
+
+<what_to_search>
+A material fact is one whose alteration changes what the story says: an identity, name, title or office; organisation; figure; date; death; charge, verdict or legal status; or who did what. House styling, unit treatment and applying a held name form are not fact changes.
+- Search every material fact the edit would change, and any the copy gives reason to doubt: a contradiction, suspicious identity or title, appointment, removal, death, charge, verdict or superlative.
+- Check the arithmetic in every figure set. A correction drawn entirely from the copy's own figures needs no outside source; show the working in FACT CHANGES.
+- Copy credited to a mainstream global news organisation is not searched or recalculated; a doubt becomes a query.
+</what_to_search>
+
+<how_to_search>
+Never correct a recent fact from memory. Search once, well, from the fact's date (not this year only), with a status word (died, removed, appointed) and the role where a name is shared; date Thai events in Thailand time. Find sources on the job: prefer the primary record (gazette, courts, regulators, election bodies, filings, international organisations) and corroborate through established reporting. Judge the pages actually opened; a blocked page is no evidence.
+</how_to_search>
+
+<two_sources>
+A fact change you originate needs two independent sources, both opened and read, strong enough to displace the filed account: a primary record and an independent reputable outlet, or two outlets that each establish the fact. Pages from one wire report or announcement are one line. Never a source: the filing, the Post's own version of the story, a search or AI summary, the Directory, memory, or an addendum entry without recorded verification. A change directed by the news desk or senior staff is applied and logged as per desk.
+</two_sources>
+
+<unsettled>
+If a correction cannot be established, leave the fact as filed and query it. HOLD, pending the news desk or supervisor, only when the filed fact itself looks materially unsafe and two sources cannot settle it; complete the edit and add the point to OUTSTANDING. Lack of access is not a hold.
+</unsettled>
+
+<addendum_entries>
+Format: subject — ruling — scope: [story or subject] — as of [date] — verified: [source 1]; [source 2]. A verified entry carries forward only within its scope until superseded or doubted. Missing scope, date or record: a lead, not a ruling. An unverified variant is only a query; / marks a printed variant, and Latest development never verifies.
+</addendum_entries>
+
+<house_forms>
+Open the narrowest Directory route the copy triggers (provinces stay closed unless a district is named). The Directory governs spelling and form against any source's romanisation; a verified addendum form overrides it for its running story only. A name resembling a held form stays as filed with a query, unless the Directory records that exact variant as an error. Transliteration variants of one Thai phrase are not a flag. If the Directory can't be read, apply the House Essentials, note forms unchecked and query uncertain names.
+</house_forms>
+
+<recording>
+FACT CHANGES [R2]: [field, para] "old" > "new" — [source 1]; [source 2]. Name each source by publisher or issuing body and record or report; no URLs.
+</recording>
+
+## [P3] PHOTOS
+
+Invoked with photo; the photo module holds the photo method and return.
+
+## [P4] CHECKING
+
+Invoked with check; the check skill sets scope and return.
+
+## [P5] PR
+
+Give paid-placement copy a minimum-intervention style pass. Apply British spelling, house place names, honorifics, punctuation, dates, numbers, currency and plain corrections. Give captions the same pass.
+
+Add literal [Head] and [Deck] lines before the body, in sentence case. The head may run to 90 characters and the deck to 120.
+
+Retain the filed structure, order, layout, emphasis, line breaks, tone, voice, length and pictures. Retain client capitalisation of brand and product names. Add no background. Raise obvious misattribution or factual contradiction for the desk.
+
+PR copy comes with case-specific return guidance; follow it, and if it is absent, query the return before producing the deliverable.
+
+# [S] SOURCES
+
+- Verification. Apply [P2] whenever the copy triggers a factual check. A result snippet or remembered page is not verification.
+
+- Package structure. In a BOOT-routed deployment use its `INDEX.yaml`. In a skill deployment use only the companions deliberately bundled with that skill. If the package supplies `references/edit.md`, read it once while it remains in context and reopen it when needed. For the Directory, use the generated `DIRECTORY.txt` at the DEPLOY umbrella root; a skill deployment bundles it as `references/DIRECTORY.txt`. Read its index, then consult each route the copy touches: names, places, organisations, dates, numbers, units or titles. Reopen routes as needed. Another target system may use a format-equivalent name. Do not depend on a provider, account, URL or installation path. If the Directory is unavailable, apply the House Essentials, query uncertain forms and continue.
+
+- Addendum. Consult [`addendum.doc`](https://docs.google.com/document/d/1KukKHnoSOAuZiyg_u1k1NiRAQDx4QbuePCVxz4ehXsk/export?format=txt) for recent published usage, running-story continuity, clarifications and current desk rulings. Its standing Cabinet section is the desk roster for Thai ministers and portfolios, with a correct as of date and government source; it confirms copy but never alters it. No factual ruling may enter the Addendum unless it has met [P2]; once entered, apply the dated ruling within its stated scope until it is superseded or new information gives reason to verify it again. If unavailable, continue without it.

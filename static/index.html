@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bangkok Post Desk Editor</title>
+    <meta
+      name="description"
+      content="Interactive console and verification workbench for the Bangkok Post Blueprint, Desk Control, Directory, and Unity deployment suite."
+    />
+    <meta property="og:title" content="Bangkok Post Desk Editor" />
+    <meta
+      property="og:description"
+      content="Interactive console and verification workbench for the Bangkok Post Blueprint, Desk Control, Directory, and Unity deployment suite."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="masthead-inner">
+        <div>
+          <div class="kicker">BANGKOK POST EDITORIAL GOVERNANCE &amp; DEPLOYMENT</div>
+          <h1 class="title">Bangkok Post Desk Editor</h1>
+          <p class="subtitle">
+            Single-source Blueprint registry, routed skill deployments, Directory lookup register &amp; Unity 3.x projection verifier
+          </p>
+        </div>
+        <div class="edition-badge-box">
+          <span class="edition-label">LIVE EDITION WITNESS</span>
+          <code id="edition-badge" class="edition-code">Loading...</code>
+          <div class="action-row">
+            <button id="btn-verify-blueprint" class="btn btn-primary" type="button">
+              Verify Blueprint Release
+            </button>
+            <button id="btn-verify-unity" class="btn btn-secondary" type="button">
+              Run Unity Tests (34)
+            </button>
+          </div>
+        </div>
+      </div>
+      <nav class="tabs" aria-label="Workspace Views">
+        <button class="tab active" data-tab="overview" type="button">Overview &amp; Receipt</button>
+        <button class="tab" data-tab="skills" type="button">Routed Skills &amp; Archives</button>
+        <button class="tab" data-tab="directory" type="button">Directory Register</button>
+        <button class="tab" data-tab="unity" type="button">Unity 3.x Plan</button>
+        <button class="tab" data-tab="decisions" type="button">Open Decisions &amp; Workplan</button>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section id="verification-banner" class="verification-banner hidden">
+        <div class="verification-header">
+          <strong id="verification-title">Verification Output</strong>
+          <button id="verification-close" class="btn-link" type="button">Dismiss</button>
+        </div>
+        <pre id="verification-output" class="code-output"></pre>
+      </section>
+
+      <!-- TAB 1: OVERVIEW -->
+      <section id="tab-overview" class="tab-panel active">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-label">Master Source</span>
+            <strong id="metric-source" class="metric-value">BLUEPRINT.md</strong>
+            <code id="metric-source-sha" class="hash-pill">...</code>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">DEPLOY Payload</span>
+            <strong id="metric-deploy-count" class="metric-value">14 files</strong>
+            <span class="metric-sub">Routed &amp; Skill trees</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Upload Skill Bundles</span>
+            <strong id="metric-zip-count" class="metric-value">5 archives</strong>
+            <span class="metric-sub">Self-contained .zip packages</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Pending Commits</span>
+            <strong id="metric-pending-status" class="metric-value">Clean</strong>
+            <span class="metric-sub">COMMITS-PENDING.md guard</span>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <h2>Build Receipt &amp; Compatibility Twins</h2>
+            <p class="card-desc">
+              Verified SHA-256 digests recorded in <code>Blueprint/build-receipt.json</code>.
+            </p>
+            <h3>Upload Skill Zip Digests</h3>
+            <div id="receipt-zips" class="hash-list"></div>
+            <h3>Compatibility Twins</h3>
+            <div id="receipt-compat" class="hash-list"></div>
+          </div>
+
+          <div class="card">
+            <h2>Desk Cold-Start &amp; Pending Queue</h2>
+            <h3>COMMITS-PENDING.md</h3>
+            <pre id="commits-pending-box" class="markdown-box"></pre>
+            <h3>bootstrap/00_START-HERE.md</h3>
+            <pre id="start-here-box" class="markdown-box"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: SKILLS -->
+      <section id="tab-skills" class="tab-panel">
+        <div class="skills-layout">
+          <aside class="skills-sidebar card">
+            <h2>Routed Modules</h2>
+            <p class="card-desc">Select a skill component compiled from <code>Blueprint/BLUEPRINT.md</code>.</p>
+            <div id="skill-list" class="skill-list"></div>
+          </aside>
+          <div class="skills-viewer card">
+            <div class="viewer-header">
+              <div>
+                <h2 id="skill-viewer-title">BOOT</h2>
+                <code id="skill-viewer-meta" class="hash-pill"></code>
+              </div>
+              <a id="skill-download-link" class="btn btn-primary" href="/api/upload/boot.zip" download>
+                Download boot.zip
+              </a>
+            </div>
+            <pre id="skill-viewer-content" class="markdown-box tall"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: DIRECTORY -->
+      <section id="tab-directory" class="tab-panel">
+        <div class="card">
+          <div class="directory-controls">
+            <div class="search-field">
+              <label for="dir-search">Search Directory Register (<code>Blueprint/DIRECTORY.yaml</code>)</label>
+              <input
+                id="dir-search"
+                type="search"
+                placeholder="Search provinces, people, titles, spellings, organisations (e.g. Chiang Mai, Malaysia Airlines, Muang)..."
+              />
+            </div>
+            <div class="filter-field">
+              <label for="dir-branch">Reference Branch</label>
+              <select id="dir-branch">
+                <option value="all">All Reference Branches</option>
+              </select>
+            </div>
+          </div>
+          <div id="dir-summary" class="dir-summary"></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Path</th>
+                  <th>Entry / Key</th>
+                  <th>House Rule / Details</th>
+                </tr>
+              </thead>
+              <tbody id="dir-results"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: UNITY -->
+      <section id="tab-unity" class="tab-panel">
+        <div class="card">
+          <div class="viewer-header">
+            <div>
+              <h2>BKP 3.x Unity Native Projection Plan</h2>
+              <p class="card-desc">
+                Compiled live via <code>Blueprint/unity/unity_update.py</code>. Content documents update first; <code>Boot_bkp3-0</code> is written last as the ignition witness.
+              </p>
+            </div>
+            <div id="unity-meta" class="unity-meta"></div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Role</th>
+                  <th>Permanent Title</th>
+                  <th>Parent Folder</th>
+                  <th>Source Path</th>
+                  <th>Paragraphs</th>
+                  <th>Substitutions</th>
+                  <th>Projection SHA-256</th>
+                </tr>
+              </thead>
+              <tbody id="unity-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: DECISIONS & WORKPLAN -->
+      <section id="tab-decisions" class="tab-panel">
+        <div class="two-col">
+          <div class="card">
+            <h2>Shared Workplan (<code>WORKPLAN.md</code>)</h2>
+            <pre id="workplan-box" class="markdown-box tall"></pre>
+          </div>
+          <div class="card">
+            <h2>Open Decisions Ledger (<code>DECISIONS-OPEN.yaml</code>)</h2>
+            <div id="decisions-list" class="decisions-list"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const state = {
+        overview: null,
+        skills: [],
+        selectedSkill: "boot",
+        unityPlan: null,
+        decisions: [],
+      };
+
+      // Tab navigation
+      document.querySelectorAll(".tab").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab").forEach((b) => b.classList.remove("active"));
+          document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+          btn.classList.add("active");
+          const tabId = btn.getAttribute("data-tab");
+          document.getElementById(`tab-${tabId}`).classList.add("active");
+        });
+      });
+
+      function showVerification(title, output, passed) {
+        const banner = document.getElementById("verification-banner");
+        const titleEl = document.getElementById("verification-title");
+        const outEl = document.getElementById("verification-output");
+        banner.classList.remove("hidden", "pass", "fail");
+        banner.classList.add(passed ? "pass" : "fail");
+        titleEl.textContent = `${passed ? "PASS" : "FAIL"} — ${title}`;
+        outEl.textContent = output;
+      }
+
+      document.getElementById("verification-close").addEventListener("click", () => {
+        document.getElementById("verification-banner").classList.add("hidden");
+      });
+
+      document.getElementById("btn-verify-blueprint").addEventListener("click", async (e) => {
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        btn.textContent = "Checking Blueprint...";
+        try {
+          const res = await fetch("/api/verify/blueprint", { method: "POST" });
+          const data = await res.json();
+          showVerification(
+            "Blueprint Release Check (Blueprint/build.py --check --release)",
+            [data.stdout, data.stderr].filter(Boolean).join("\n"),
+            data.passed
+          );
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Verify Blueprint Release";
+        }
+      });
+
+      document.getElementById("btn-verify-unity").addEventListener("click", async (e) => {
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        btn.textContent = "Running 34 Tests...";
+        try {
+          const res = await fetch("/api/verify/unity", { method: "POST" });
+          const data = await res.json();
+          showVerification(
+            "Unity 3.x Test Suite (Blueprint/unity/tests)",
+            [data.stdout, data.stderr].filter(Boolean).join("\n"),
+            data.passed
+          );
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Run Unity Tests (34)";
+        }
+      });
+
+      async function loadOverview() {
+        const res = await fetch("/api/overview");
+        const data = await res.json();
+        state.overview = data;
+
+        document.getElementById("edition-badge").textContent = data.edition;
+        const receipt = data.receipt || {};
+        document.getElementById("metric-source").textContent = receipt.source || "BLUEPRINT.md";
+        document.getElementById("metric-source-sha").textContent =
+          (receipt.source_sha256 || "").slice(0, 16) + "…";
+        document.getElementById("metric-deploy-count").textContent =
+          `${receipt.deploy_files || 14} files`;
+        const zips = receipt.upload_zips || {};
+        document.getElementById("metric-zip-count").textContent =
+          `${Object.keys(zips).length} archives`;
+
+        const zipsContainer = document.getElementById("receipt-zips");
+        zipsContainer.innerHTML = Object.entries(zips)
+          .map(
+            ([name, sha]) => `
+            <div class="hash-row">
+              <span class="hash-name"><a href="/api/upload/${name}" download>${name}</a></span>
+              <code class="hash-val">${sha}</code>
+            </div>`
+          )
+          .join("");
+
+        const compat = receipt.compatibility_files || {};
+        const compatContainer = document.getElementById("receipt-compat");
+        compatContainer.innerHTML = Object.entries(compat)
+          .map(
+            ([name, sha]) => `
+            <div class="hash-row">
+              <span class="hash-name">${name}</span>
+              <code class="hash-val">${sha}</code>
+            </div>`
+          )
+          .join("");
+
+        document.getElementById("commits-pending-box").textContent = data.commits_pending || "";
+        document.getElementById("start-here-box").textContent = data.start_here || "";
+        document.getElementById("workplan-box").textContent = data.workplan || "";
+      }
+
+      async function loadSkills() {
+        const res = await fetch("/api/skills");
+        const data = await res.json();
+        state.skills = data.skills || [];
+        renderSkillsSidebar();
+        selectSkill(state.selectedSkill);
+      }
+
+      function renderSkillsSidebar() {
+        const listEl = document.getElementById("skill-list");
+        listEl.innerHTML = state.skills
+          .map(
+            (s) => `
+            <button type="button" class="skill-item ${s.id === state.selectedSkill ? "active" : ""}" data-skill="${s.id}">
+              <div class="skill-item-top">
+                <strong>${s.name}</strong>
+                <span>${(s.bytes / 1024).toFixed(1)} KB</span>
+              </div>
+              <div class="skill-item-sub">${s.routed_path}</div>
+            </button>`
+          )
+          .join("");
+
+        listEl.querySelectorAll(".skill-item").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            selectSkill(btn.getAttribute("data-skill"));
+          });
+        });
+      }
+
+      function selectSkill(skillId) {
+        state.selectedSkill = skillId;
+        renderSkillsSidebar();
+        const skill = state.skills.find((s) => s.id === skillId);
+        if (!skill) return;
+        document.getElementById("skill-viewer-title").textContent = `${skill.name} (${skill.routed_path})`;
+        document.getElementById("skill-viewer-meta").textContent =
+          `${skill.lines} lines · ${skill.bytes.toLocaleString()} bytes · zip sha256: ${skill.zip_sha256.slice(0, 16)}…`;
+        const link = document.getElementById("skill-download-link");
+        link.href = `/api/upload/${skill.zip_name}`;
+        link.textContent = `Download ${skill.zip_name} (${(skill.zip_bytes / 1024).toFixed(1)} KB)`;
+        document.getElementById("skill-viewer-content").textContent = skill.content;
+      }
+
+      let dirTimeout = null;
+      async function loadDirectory() {
+        const q = document.getElementById("dir-search").value;
+        const branch = document.getElementById("dir-branch").value;
+        const res = await fetch(
+          `/api/directory?q=${encodeURIComponent(q)}&branch=${encodeURIComponent(branch)}`
+        );
+        const data = await res.json();
+
+        const select = document.getElementById("dir-branch");
+        if (select.options.length <= 1 && data.branches) {
+          data.branches.forEach((b) => {
+            const opt = document.createElement("option");
+            opt.value = b;
+            opt.textContent = b;
+            select.appendChild(opt);
+          });
+        }
+
+        document.getElementById("dir-summary").textContent =
+          `Showing ${data.entries.length} of ${data.matched_entries} matching entries (${data.total_entries} total entries in branch selection)`;
+
+        const tbody = document.getElementById("dir-results");
+        tbody.innerHTML = data.entries
+          .map(
+            (e) => `
+            <tr>
+              <td><code>${escapeHtml(e.path)}</code></td>
+              <td><strong>${escapeHtml(e.key)}</strong></td>
+              <td>${escapeHtml(e.value)}</td>
+            </tr>`
+          )
+          .join("");
+      }
+
+      document.getElementById("dir-search").addEventListener("input", () => {
+        clearTimeout(dirTimeout);
+        dirTimeout = setTimeout(loadDirectory, 180);
+      });
+      document.getElementById("dir-branch").addEventListener("change", loadDirectory);
+
+      async function loadUnityPlan() {
+        const res = await fetch("/api/unity/plan");
+        if (!res.ok) return;
+        const data = await res.json();
+        document.getElementById("unity-meta").innerHTML = `
+          <div><strong>Root:</strong> ${escapeHtml(data.root_title || "")}</div>
+          <div><strong>Set Digest:</strong> <code>${(data.unity_set_digest || "").slice(0, 18)}…</code></div>
+          <div><strong>Plan Digest:</strong> <code>${(data.plan_digest || "").slice(0, 18)}…</code></div>
+        `;
+        const tbody = document.getElementById("unity-table-body");
+        tbody.innerHTML = (data.documents || [])
+          .map(
+            (doc, idx) => `
+            <tr>
+              <td><span class="order-pill">${idx + 1}${doc.role === "boot" ? " (LAST)" : ""}</span></td>
+              <td><strong>${escapeHtml((doc.role || "").toUpperCase())}</strong></td>
+              <td><code>${escapeHtml(doc.title || "")}</code></td>
+              <td><code>${escapeHtml(doc.parent_path || ".")}</code></td>
+              <td><code>${escapeHtml(doc.source || "")}</code></td>
+              <td>${doc.paragraph_count}</td>
+              <td>${doc.transport_changes}</td>
+              <td><code>${(doc.desired_native_projection_sha256 || "").slice(0, 16)}…</code></td>
+            </tr>`
+          )
+          .join("");
+      }
+
+      async function loadDecisions() {
+        const res = await fetch("/api/decisions");
+        const data = await res.json();
+        const container = document.getElementById("decisions-list");
+        container.innerHTML = (data.decisions || [])
+          .map(
+            (d) => `
+            <article class="decision-card">
+              <div class="decision-top">
+                <code class="decision-key">${escapeHtml(d.key || "")}</code>
+                <span class="decision-verdict">${escapeHtml(d.verdict || "PENDING")}</span>
+              </div>
+              <h4>${escapeHtml(d.title || "")}</h4>
+              ${d["status-thread"] ? `<p class="decision-thread">${escapeHtml(d["status-thread"])}</p>` : ""}
+              ${d.ruling ? `<pre class="decision-body">${escapeHtml(d.ruling)}</pre>` : ""}
+              ${d["open-question"] ? `<pre class="decision-body">${escapeHtml(d["open-question"])}</pre>` : ""}
+            </article>`
+          )
+          .join("");
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      loadOverview();
+      loadSkills();
+      loadDirectory();
+      loadUnityPlan();
+      loadDecisions();
+    </script>
+  </body>
+</html>

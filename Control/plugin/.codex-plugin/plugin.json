@@ -1,0 +1,29 @@
+{
+  "name": "edit",
+  "version": "0.2.0",
+  "description": "Bangkok Post desk workflows governed by the complete BLUEPRINT, comprising GUIDE rules and DIRECTORY lookups.",
+  "author": {
+    "name": "Bangkok Post desk"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Bangkok Post Desk Control",
+    "shortDescription": "Run Bangkok Post desk workflows",
+    "longDescription": "Edit, check, caption and process PR copy using generated Blueprint sections and triggered Directory lookups.",
+    "developerName": "Bangkok Post desk",
+    "category": "Productivity",
+    "capabilities": [
+      "Edit Bangkok Post copy",
+      "Check placed copy before initialling",
+      "Write and fit standalone captions",
+      "Apply the paid-placement PR workflow",
+      "Apply GUIDE rules and DIRECTORY lookups"
+    ],
+    "defaultPrompt": [
+      "Use $edit to edit this Bangkok Post copy with the supplied Blueprint sections.",
+      "Use $photo to handle this Bangkok Post headline and caption with the supplied Blueprint sections.",
+      "Use $check to check this placed Bangkok Post copy with the supplied Blueprint sections.",
+      "Use $pr to process this Bangkok Post paid-placement copy with the supplied Blueprint section."
+    ]
+  }
+}

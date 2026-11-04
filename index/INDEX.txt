@@ -1,0 +1,47 @@
+BANGKOK POST DESK — AI ENTRY HUB
+Edition: 051026_gpt_job-package
+Fetch this file first.
+
+01 BOOT
+  BOOT.md
+  https://raw.githubusercontent.com/cliffspab/pipeline-registry/main/index/BOOT.md
+  (mirror) https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/pipeline-registry/index/BOOT.md
+
+02 CORE
+  control     maps job type → sections
+              https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/control_sync.txt
+  guide       task, method, return
+              https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/guide_sync.txt
+  processes   P1–P5
+              https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/processes_sync.txt
+  directory   status and house forms
+              https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/directory_sync.yaml
+  blueprint   single-file substitute
+              https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/blueprint_sync.txt
+
+03 SKILLS
+  bkp         full beta desk skill; shift open; default EDIT
+              index/skills/bkp.md
+  check       facts-only pass
+              index/skills/check.md
+  photo       head + caption / mugshot
+              index/skills/photo.md
+  fit         line-level fit to supervisor gap
+              index/skills/fit.md
+
+04 SEALED
+  version     https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/version_sync.txt
+  index       https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/index_sync.txt
+
+05 USAGE (daily, not authority)
+  usage_sync
+  https://go.fuzzylogic.page/news
+  Running stories, names, terms. Directory governs.
+  " / " = printed variant (query). Latest development is never a source.
+
+LOAD ORDER
+1. This index.
+2. BOOT.
+3. control_sync.txt.
+4. Only the core files named by the control map for the job.
+5. The bkp skill, plus the mode skill if invoked.

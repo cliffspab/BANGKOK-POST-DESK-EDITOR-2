@@ -1,0 +1,102 @@
+# BANGKOK POST DESK — AI ENTRY HUB
+# Edition: 051026_gpt_job-package
+# Fetch this file first. It is the single entry point.
+# Do not scrape a website. Use the URLs below.
+
+edition: 051026_gpt_job-package
+integrity: see sealed/version_sync.txt (or GitHub VERSION.txt)
+purpose: cold-start map for any AI performing BKP desk work
+
+# ---------------------------------------------------------------------------
+# 01 BOOT
+# Short instructions. Read this, then follow the control map for the job type.
+# ---------------------------------------------------------------------------
+boot:
+  file: BOOT.md
+  primary: https://raw.githubusercontent.com/cliffspab/pipeline-registry/main/index/BOOT.md
+  mirror: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/pipeline-registry/index/BOOT.md
+  note: >
+    One-paragraph cold start. Tells the model which core files to load
+    for EDIT, CHECK, PHOTO, FIT and PR. Mode skills set the return only.
+
+# ---------------------------------------------------------------------------
+# 02 CORE
+# Governing set. Load only the slices the control map names for the job.
+# ---------------------------------------------------------------------------
+core:
+  control:
+    role: maps job type to working sections
+    sealed: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/control_sync.txt
+    mirror: https://raw.githubusercontent.com/cliffspab/pipeline-registry/main/Control/CONTROL.txt
+  guide:
+    role: task, method, return (G1, G2)
+    sealed: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/guide_sync.txt
+    mirror: https://raw.githubusercontent.com/cliffspab/pipeline-registry/main/Blueprint/GUIDE.txt
+  processes:
+    role: copy, verification, photos, checking, PR (P1–P5)
+    sealed: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/processes_sync.txt
+    mirror: https://raw.githubusercontent.com/cliffspab/pipeline-registry/main/Blueprint/PROCESSES.txt
+  directory:
+    role: status and house forms
+    sealed: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/directory_sync.yaml
+    mirror: https://raw.githubusercontent.com/cliffspab/pipeline-registry/main/Blueprint/DIRECTORY.yaml
+  blueprint:
+    role: single-file substitute when a destination requires one document
+    sealed: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/blueprint_sync.txt
+    mirror: https://raw.githubusercontent.com/cliffspab/pipeline-registry/main/Blueprint/BLUEPRINT.txt
+
+# ---------------------------------------------------------------------------
+# 03 SKILLS
+# Supervisor-approved beta skill set. `bkp` carries the full working core;
+# mode skills provide bounded task handling and returns.
+# ---------------------------------------------------------------------------
+skills:
+  bkp:
+    role: beta operational authority; full desk core, shift open and default EDIT return
+    file: skills/bkp.md
+    primary: https://raw.githubusercontent.com/cliffspab/pipeline-registry/main/index/skills/bkp.md
+    mirror: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/pipeline-registry/index/skills/bkp.md
+  check:
+    role: fast facts-only pass on a task the chief has already read
+    file: skills/check.md
+    primary: https://raw.githubusercontent.com/cliffspab/pipeline-registry/main/index/skills/check.md
+    mirror: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/pipeline-registry/index/skills/check.md
+  photo:
+    role: standalone head + caption or mugshot
+    file: skills/photo.md
+    primary: https://raw.githubusercontent.com/cliffspab/pipeline-registry/main/index/skills/photo.md
+    mirror: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/pipeline-registry/index/skills/photo.md
+  fit:
+    role: line-level fit to a supervisor-supplied gap
+    file: skills/fit.md
+    primary: https://raw.githubusercontent.com/cliffspab/pipeline-registry/main/index/skills/fit.md
+    mirror: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/pipeline-registry/index/skills/fit.md
+
+# ---------------------------------------------------------------------------
+# 04 SEALED HANDOVER
+# Stable transport names on filedn. Prefer these for production work.
+# ---------------------------------------------------------------------------
+sealed:
+  index: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/index_sync.txt
+  version: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/version_sync.txt
+  control: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/control_sync.txt
+  guide: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/guide_sync.txt
+  processes: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/processes_sync.txt
+  directory: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/directory_sync.yaml
+  blueprint: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/blueprint_sync.txt
+  docx: https://filedn.eu/llkhskhNM5iQj7czpUFCQ8V/BKP%20Shift/blueprint_sync.docx
+
+# ---------------------------------------------------------------------------
+# 05 USAGE
+# Daily Thailand-section running stories, names and terms as published.
+# Updated ~3pm. Usage, not a house ruling. Directory governs.
+# In this file, " / " marks a printed variant (query, never correct).
+# Latest development is never a source.
+# ---------------------------------------------------------------------------
+usage:
+  file: usage_sync
+  url: https://go.fuzzylogic.page/news
+  alt: https://go.fuzzylogic.page/newsmd
+  role: running stories, names, terms (7-day window)
+  authority: none — query on conflict with Directory or filing
+  update: daily ~15:00 Thailand time

@@ -1,0 +1,25 @@
+{
+  "edition": "051026_gpt_job-package",
+  "output": "/home/runner/work/pipeline-registry/pipeline-registry/Blueprint/BLUEPRINT.docx",
+  "pandoc_api_version": [
+    1,
+    23,
+    1,
+    1
+  ],
+  "source_blocks": 108,
+  "source_block_types": {
+    "BulletList": 7,
+    "CodeBlock": 8,
+    "Header": 26,
+    "OrderedList": 1,
+    "Para": 63,
+    "RawBlock": 3
+  },
+  "suppressed_structural_separator_paragraphs": 0,
+  "design_components": [
+    "CORE",
+    "PROCESSES",
+    "DIRECTORY"
+  ]
+}

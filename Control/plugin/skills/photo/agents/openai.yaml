@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bangkok Post Photo"
+  short_description: "Write and fit standalone captions"
+  default_prompt: "Use $photo to handle this Bangkok Post headline and caption with the supplied Blueprint sections."

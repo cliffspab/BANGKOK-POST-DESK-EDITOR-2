@@ -1,0 +1,5 @@
+{
+  "name": "Bangkok Post Desk Editor",
+  "description": "Interactive console and verification workbench for the Bangkok Post Blueprint, Desk Control, Directory, and Unity deployment suite.",
+  "requestFramePermissions": []
+}

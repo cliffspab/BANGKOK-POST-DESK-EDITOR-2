@@ -1,0 +1,45 @@
+BKP SHIFT SET
+110826_shf_manifest
+
+Assembled 11 August 2026. Everything here is current as of assembly.
+Anything predating this set can be deleted.
+
+BLUEPRINT — governance, pulled from github.com/cliffspab/pipeline-registry
+at commit 6bca4dd, 2026-08-10 20:56 UTC, "Split BLUEPRINT into parts,
+rebuild style guide". These are the repo files verbatim, not reproductions.
+
+  BLUEPRINT.txt / .docx / .pdf   full governance document, all components
+  STATUS.txt / .yaml             register
+  REFERENCES.txt / .yaml         register
+  COMPILED.txt / .md             compiled governance set
+  DIRECTORY / GUIDE / index      navigation
+  DECISIONS-OPEN.yaml            pending rulings
+
+SIDEBAR — the skill collection, built this session.
+
+  SIDEBAR.md                     the collection, single source
+  SIDEBAR.docx / .pdf            same, paged, one skill per page
+  EDIT / PR / PHOTO / CHECK.md   the four parts, standalone injectable
+  WATCH.md                       apex + watch name tiers, standalone
+  AUDIT.md                       findings against the set, unactioned items
+
+NOTE ON PROCESSES
+The repo at this commit contains no PROCESSES file. BLUEPRINT.txt states its
+components are CORE + PROCESSES + STATUS + REFERENCES and that component files
+are split out on every push — but only STATUS and REFERENCES were written.
+PROCESSES exists inside BLUEPRINT.txt and nowhere else as a standalone.
+The project knowledge base still serves a PROCESSES.md and a BLUEPRINT.md that
+no longer exist in the repo. Those are stale and should be resynced.
+
+OPEN, FROM AUDIT.md
+  1  PHOTO carries no DC-X counter mechanics
+  2  mechanics duplicated by hand across files
+  3  nothing has been run against real copy
+  6  no deterministic counting in the skills
+     — resolved in principle: the panel has javascript_tool, page-scoped
+
+OPEN, FROM THIS SESSION
+  WATCH names were read from project search fragments, not from STATUS.
+  Needs one sweep against the file before it goes on shift.
+  The OVERRIDE standard safety filters phrasing in STATUS can now be cut —
+  no claim ships to any chair, so it defends nothing.

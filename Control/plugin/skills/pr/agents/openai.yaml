@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bangkok Post PR"
+  short_description: "Process paid-placement copy"
+  default_prompt: "Use $pr to process this Bangkok Post paid-placement copy with the supplied Blueprint section."

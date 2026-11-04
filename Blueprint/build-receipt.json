@@ -1,0 +1,21 @@
+{
+  "version": "301026_gpt_bkp3-1",
+  "source": "BLUEPRINT.md",
+  "source_sha256": "a32cbfc9d98f531395305297e2dd7dcdff718f241651b17b5f0428340599647b",
+  "deploy_files": 14,
+  "upload_zips": {
+    "boot.zip": "4170b4e484f9a73a1da2a629a89e38e64a7bf1fa3c6b97c165a4a1a4e6ae1a2c",
+    "check.zip": "30d6528d08d1acca9d35908364b8036e9eb6efec9720298e279c5102049ab92e",
+    "edit.zip": "a05b7b87f545141c830194ebee094afb4e664863ada95ab41d1ed0a97b4b17a1",
+    "photo.zip": "ae2dd499798a9a48d480242d4008ec7e38c4d701f013b0a9f624ec5da263dc4a",
+    "pr.zip": "f48b2185c9ec3c81e26cd9c1e1277ec0ca7149148f8c6cecfa49f48e27381db6"
+  },
+  "compatibility_files": {
+    "BLUEPRINT.txt": "a9cea839a127e1233c4548b5e478f678d1c8053bcb549ef330bebfce840baf5d",
+    "GUIDE.txt": "8f332248c1ba7ed18e85859ed1f2df269d6c042a3185b4fa48d759efd7b06fa4",
+    "PROCESSES.txt": "93a0a2e92d6362cf0aaa917b99dbe6dfd6b4938a2069bf19ed61d3e40340ec81",
+    "DIRECTORY.txt": "f9356bc5bed5fbac90802fa31d8853f0cc1ad5a3ff2765d06c8b19fc3f66b278",
+    "DIRECTORY.yaml": "f9356bc5bed5fbac90802fa31d8853f0cc1ad5a3ff2765d06c8b19fc3f66b278",
+    "VERSION.txt": "c2dec973584b28d86548e51fd3fc56669394f8791a264c2227cfbb9e276df9a1"
+  }
+}

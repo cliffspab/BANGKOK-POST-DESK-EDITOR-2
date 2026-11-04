@@ -1,0 +1,16 @@
+# Local archive snapshots — never publish to the live repo
+$Archive/
+**/$Archive/
+
+# OS / editor cruft
+desktop.ini
+Thumbs.db
+.DS_Store
+*.tmp
+~$*
+__pycache__/
+*.py[cod]
+
+# GoodSync sync metadata & PULSE logs — local only, never publish
+_gsdata_/
+.tmp.driveupload/

@@ -1,0 +1,25 @@
+# 301026_gpt_bkp3-1
+version: 301026_gpt_bkp3-1
+entrypoint: BOOT.md
+default: edit.md
+directory_source: ../DIRECTORY.txt
+modes:
+  check: modules/check.md
+  photo: modules/photo.md
+  pr: modules/pr.md
+files:
+  - path: BOOT.md
+    bytes: 1456
+    sha256: 7caa2f42ce9e833603820b93b823084c0d63db1cc6e0ba543459d1d7a28f9412
+  - path: edit.md
+    bytes: 22525
+    sha256: 65c6a22ad4e416414c1c3951c5cc90135751db1278ed7eb1b39cd67ab6e33fd4
+  - path: modules/check.md
+    bytes: 2497
+    sha256: acc97572928d2684387bd7940f23e1b6d384020f5bba3ea186442fd521013e2e
+  - path: modules/photo.md
+    bytes: 2615
+    sha256: c12acffa6012639f7c88b342bcb9f662d476191fa42fad96408f1155d4eb1df7
+  - path: modules/pr.md
+    bytes: 1251
+    sha256: 61ae510e760d5c496f36720757f615fe023baadf4bfa90c464a801b803d6d0d6

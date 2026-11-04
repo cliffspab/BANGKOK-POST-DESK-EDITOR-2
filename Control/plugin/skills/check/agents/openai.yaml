@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bangkok Post Check"
+  short_description: "Check placed copy before initialling"
+  default_prompt: "Use $check to check this placed Bangkok Post copy with the supplied Blueprint sections."

@@ -1,0 +1,47 @@
+# 301026_gpt_bkp3-1
+version: 301026_gpt_bkp3-1
+directory: DIRECTORY.txt
+deployments:
+  routed: routed/INDEX.yaml
+  skills: skills/INDEX.yaml
+instruction: choose one deployment; do not ingest the whole umbrella
+files:
+  - path: DIRECTORY.txt
+    bytes: 30763
+    sha256: f9356bc5bed5fbac90802fa31d8853f0cc1ad5a3ff2765d06c8b19fc3f66b278
+  - path: routed/BOOT.md
+    bytes: 1456
+    sha256: 7caa2f42ce9e833603820b93b823084c0d63db1cc6e0ba543459d1d7a28f9412
+  - path: routed/INDEX.yaml
+    bytes: 785
+    sha256: eaef459c0a08003fd3647f656cc31b73d74d2463783286335ad401177a93f51c
+  - path: routed/edit.md
+    bytes: 22525
+    sha256: 65c6a22ad4e416414c1c3951c5cc90135751db1278ed7eb1b39cd67ab6e33fd4
+  - path: routed/modules/check.md
+    bytes: 2497
+    sha256: acc97572928d2684387bd7940f23e1b6d384020f5bba3ea186442fd521013e2e
+  - path: routed/modules/photo.md
+    bytes: 2615
+    sha256: c12acffa6012639f7c88b342bcb9f662d476191fa42fad96408f1155d4eb1df7
+  - path: routed/modules/pr.md
+    bytes: 1251
+    sha256: 61ae510e760d5c496f36720757f615fe023baadf4bfa90c464a801b803d6d0d6
+  - path: skills/INDEX.yaml
+    bytes: 862
+    sha256: d60ec6fd37c0e994b73a6bedab3567edd5dd252bbcb5aed2b222933acf4cfb1e
+  - path: skills/boot/SKILL.md
+    bytes: 1456
+    sha256: 7caa2f42ce9e833603820b93b823084c0d63db1cc6e0ba543459d1d7a28f9412
+  - path: skills/check/SKILL.md
+    bytes: 2497
+    sha256: acc97572928d2684387bd7940f23e1b6d384020f5bba3ea186442fd521013e2e
+  - path: skills/edit/SKILL.md
+    bytes: 22525
+    sha256: 65c6a22ad4e416414c1c3951c5cc90135751db1278ed7eb1b39cd67ab6e33fd4
+  - path: skills/photo/SKILL.md
+    bytes: 2615
+    sha256: c12acffa6012639f7c88b342bcb9f662d476191fa42fad96408f1155d4eb1df7
+  - path: skills/pr/SKILL.md
+    bytes: 1251
+    sha256: 61ae510e760d5c496f36720757f615fe023baadf4bfa90c464a801b803d6d0d6

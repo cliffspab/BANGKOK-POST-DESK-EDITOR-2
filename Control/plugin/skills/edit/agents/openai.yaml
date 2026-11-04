@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bangkok Post Edit"
+  short_description: "Edit copy to Bangkok Post desk rules"
+  default_prompt: "Use $edit to edit this Bangkok Post copy with the supplied Blueprint sections."

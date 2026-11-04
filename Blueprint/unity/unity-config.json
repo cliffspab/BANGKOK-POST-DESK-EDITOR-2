@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "family": "bkp3-0",
+  "header": "BKP 3.0 UNITY",
+  "status": "current",
+  "expected_edition": "301026_gpt_bkp3-1",
+  "projection_normalization": "paragraph-lf-nfc-v1",
+  "boot_projection_sha256": "fe442eac3f1ca3db06be671ca439df2fdaf71758b4f593f6e85fe30ae8a19c26",
+  "edition_file": "VERSION.txt",
+  "root_folder": {
+    "id": "17KYiUX-VvCY5LWOKnENKoolGgRHT-bR6",
+    "title": "BKP 3.0 Live"
+  },
+  "portable_hierarchy": [
+    ".",
+    "DEPLOY",
+    "DEPLOY/routed",
+    "DEPLOY/routed/modules"
+  ],
+  "required_roles": [
+    "blueprint",
+    "edit",
+    "check",
+    "photo",
+    "pr",
+    "directory",
+    "boot"
+  ],
+  "publish_order": [
+    "blueprint",
+    "edit",
+    "check",
+    "photo",
+    "pr",
+    "directory",
+    "boot"
+  ],
+  "targets": [
+    {
+      "role": "boot",
+      "document_id": "1r6B4xb2uWtIvK1-CpB-pI9SgkI0FVVyFITkpTPP2LoY",
+      "title": "Boot_bkp3-0",
+      "parent_path": "DEPLOY/routed",
+      "source": "DEPLOY/routed/BOOT.md",
+      "source_sha256": "7caa2f42ce9e833603820b93b823084c0d63db1cc6e0ba543459d1d7a28f9412"
+    },
+    {
+      "role": "blueprint",
+      "document_id": "1D3PsffH9EjLr6W6JOcJMb9sbQ6_I_mo1BvhgdDQ9DR4",
+      "title": "Blueprint_bkp3-0",
+      "parent_path": ".",
+      "source": "BLUEPRINT.txt",
+      "source_sha256": "a9cea839a127e1233c4548b5e478f678d1c8053bcb549ef330bebfce840baf5d"
+    },
+    {
+      "role": "edit",
+      "document_id": "1SvTGj3v8MUpy7rrU8R3G2SOcFI4iM3P7Ngx_rGNT6yI",
+      "title": "Edit_bkp3-0",
+      "parent_path": "DEPLOY/routed",
+      "source": "DEPLOY/routed/edit.md",
+      "source_sha256": "65c6a22ad4e416414c1c3951c5cc90135751db1278ed7eb1b39cd67ab6e33fd4"
+    },
+    {
+      "role": "check",
+      "document_id": "1RQxCx8dMYrzEWq8lGCT1cYEV5JD9I6lv491DLzy_SjI",
+      "title": "Check_bkp3-0",
+      "parent_path": "DEPLOY/routed/modules",
+      "source": "DEPLOY/routed/modules/check.md",
+      "source_sha256": "acc97572928d2684387bd7940f23e1b6d384020f5bba3ea186442fd521013e2e"
+    },
+    {
+      "role": "photo",
+      "document_id": "1ugzFK-6C-klJtq3H3ktbAhn-h0n45e7yvVh-GxqYaI4",
+      "title": "Photo_bkp3-0",
+      "parent_path": "DEPLOY/routed/modules",
+      "source": "DEPLOY/routed/modules/photo.md",
+      "source_sha256": "c12acffa6012639f7c88b342bcb9f662d476191fa42fad96408f1155d4eb1df7",
+      "native_source_projection": {
+        "algorithm": "codeblock-sentinels-nonblank-lines-lf-nfc-v1",
+        "strip_leading_paragraphs": 5
+      }
+    },
+    {
+      "role": "pr",
+      "document_id": "16pYh7R-pKvcX_DnktmC-wKr1Jq04gLi07ulxMqA7GI4",
+      "title": "PR_bkp3-0",
+      "parent_path": "DEPLOY/routed/modules",
+      "source": "DEPLOY/routed/modules/pr.md",
+      "source_sha256": "61ae510e760d5c496f36720757f615fe023baadf4bfa90c464a801b803d6d0d6"
+    },
+    {
+      "role": "directory",
+      "document_id": "1urpdP1F5acX6vPvRklB2PjWWPRNKJS5L5DBn5tPFehk",
+      "title": "Directory_bkp3-0",
+      "parent_path": ".",
+      "source": "DIRECTORY.txt",
+      "source_sha256": "f9356bc5bed5fbac90802fa31d8853f0cc1ad5a3ff2765d06c8b19fc3f66b278",
+      "native_source_projection": {
+        "algorithm": "nonblank-lines-lf-nfc-v1",
+        "strip_leading_paragraphs": 5
+      }
+    }
+  ]
+}

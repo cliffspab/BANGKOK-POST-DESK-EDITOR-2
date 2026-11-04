@@ -1,0 +1,564 @@
+# BKP DECISIONS — OPEN LEDGER (the one file)
+#
+# Standing intake for candidate rule changes, amendments and refinements
+# as they crop up in the field. Any model on any shift appends here;
+# nothing in this file is authoritative until the operator rules.
+#
+# Protocol:
+#   - Keys continue the standing series: LEN NAM ARC OUT VER STA OTH
+#     (next free numbers below). New facet -> new prefix, note it here.
+#   - Every entry: key, title, ruling (proposed), rationale (raw quote
+#     or observed incident + date), type, dates, verdict: PENDING.
+#   - Operator sweeps the list periodically. Ruled entries are executed
+#     (deployed to both homes or discarded), the sweep is logged in
+#     VERSION_HISTORY.md, and closed entries are pruned from this file.
+#     History lives in the log and the archived batch files, not here.
+#
+# next-keys: LEN-14 NAM-15 ARC-18 OUT-08 VER-08 STA-04 OTH-16
+# carried-over open threads from the 2026-07-02 register sweep below.
+
+decisions:
+
+  - key: VER-07
+    title: "The desk's web fetch serves arbitrarily stale cached content and cannot verify anything time-sensitive"
+    status-thread: >
+      MEASURED 2026-08-01, not inferred. Raise to a ruling: this changes what
+      the SEARCHQ relay is for and what the desk may claim to have checked.
+    open-question: >
+      Three fetches, three sites, three vintages, every one served cleanly with
+      no error and no staleness signal:
+        en.wikipedia.org/wiki/Main_Page   dated 12 Jun 2026   7 weeks stale
+        bangkokpost.com                   dated 2 Apr 2025    16 months stale
+        www.bangkokpost.com/thailand      Nov 2022 content    3.7 years stale
+      raw.githubusercontent.com served current content throughout the same
+      session, so the register lane appears to refresh; general web does not.
+      Cache-busting with ?v= returns empty rather than fresh on the general
+      web, so there is no desk-side mitigation.
+      THE DANGEROUS CASE IS THE RECENT ONE. A page from 2022 announces itself.
+      A page from seven weeks ago does not: it postdates the model's reliable
+      knowledge, so it reads as news and feels current. That is the failure
+      that ships.
+      CONSEQUENCE FOR CORE: "A bangkokpost.com site search is the preferred
+      method for a name or usage item" cannot be executed reliably by this
+      desk. Not "should not" — cannot. The tool answers fluently with content
+      of unknown age and nothing in the response distinguishes it from today.
+      CONSEQUENCE FOR SEARCHQ: the relay is not an economy measure. It is the
+      only route to a current answer, because the relay destinations are
+      looking at today and this desk demonstrably is not. The Blueprint frames
+      it as saving desk usage; that framing is wrong and should be corrected.
+      CONSEQUENCE FOR VER-05: "the operator's browser is the only ground-truth
+      fetch instrument" is literal engineering fact, not a caution about
+      diligence.
+      PROPOSED: CORE states that the desk does not verify currency by fetch;
+      any question turning on what is true or current usage today goes to the
+      operator or to SEARCHQ. Separately, the Bangkok Post site was
+      unreachable from the operator's machine on 010826 (ERR_NAME_NOT_RESOLVED
+      on www, coinciding with a suspected paywall migration), so the preferred
+      method may also be failing at source. If a commercial decision at the
+      paper can switch off the register's named verification route, the
+      document needs a stated fallback.
+    type: STANDING-RULE (candidate)
+    dates: [2026-08-01]
+    verdict: PENDING
+
+  - key: OTH-15
+    title: "Third-party audit triage (010826): two accepted, two rejected against ruled doctrine, one half-right"
+    status-thread: >
+      Operator supplied an unsolicited audit of the full set, 010826, "almost
+      by mistake". Logged in the shape of OTH-13 so the rejections are on
+      record and the next reviewer does not re-raise them.
+    ruling: >
+      ACCEPT as candidates:
+      (a) UNLISTED ENTITIES. THAI PLACES opens "Use RTGS transliteration",
+      which reads as a licence to romanise an unlisted name from training
+      data. The house rules beneath it are RTGS OVERRIDES (Muang not Mueang,
+      Klong not Khlong), so the top line invites the behaviour they exist to
+      prevent. Not theoretical: it is the same fault found inside the register
+      itself on 310726, where RTGS forms sat beside house forms unreconciled.
+      Proposed: an unlisted name stands as filed; apply only the global master
+      rules.
+      (b) PROXIMITY ALERT HAS NO HOME. The wording is dictated, the placement
+      is not. Three plausible destinations exist and nothing rules between
+      them: STYLE LOG "unresolved reference issues", STATE LOG "Flags or
+      anomalies held for the operator", or a query above the box. Pick ONE
+      primary placement — the audit proposed two, which is the duplication
+      being cut everywhere else.
+      HALF-RIGHT, acted on 010826 by a different route:
+      (c) AUTHORITY CLASH. The audit proposed reordering STATUS above
+      REFERENCES to stop a stale REFS entry overriding a volatile STATUS fact.
+      The reorder was ruled and applied — but the fix it proposed would have
+      left the actual fault untouched. The collision was not hierarchical: it
+      was that the REFS title-retention block held current-title facts that had
+      rotted (Benedict d.2022, Catherine's title changed 2022). Refiled per the
+      volatility test rather than reordered around.
+      REJECT:
+      (d) QUOTE FIREWALL — a global rule exempting quotes from house style.
+      This is precisely the construction ruled against in handoff section 6:
+      "A top-level exception would be reachable by every rule including those
+      that never wanted it, and would invite the argument about what counts as
+      a quote at the level where no rule can answer." Each rule fences its own
+      element and carries its own carve-out; the times rule already preserves
+      quoted speech. Would be a fourth statement of a rule stated three times.
+      (e) OVERSPILL PARALYSIS — the claim that `hold` plus bloated copy leaves
+      the desk stuck. It does not: 1-in/1-out substitution IS the mechanism,
+      and the clause already says "where a fix shifts width, absorb it in the
+      swap". The audit missed it. Residual worth noting: the "what fills the
+      freed space" principle is stated only for sub-heads and never
+      generalised.
+    rationale: >
+      Same pattern as OTH-13: a capable outside read finds two real things,
+      misreads ruled doctrine on two, and gets one half-right for sound
+      reasons. The value is in the two finds; the cost is that rejections
+      recur unless written down.
+    type: TRIAGE (candidate)
+    dates: [2026-08-01]
+    verdict: PENDING
+
+  - key: OTH-14
+    title: "REFERENCES taxonomy: countries sits beside places despite being a subset"
+    status-thread: BACK BURNER — operator parked it 2026-08-01
+    open-question: >
+      REFERENCES runs six sections at one level: COUNTRIES, FOREIGN PLACES,
+      FOREIGN PEOPLE, THAI PLACES, ORGANISATIONS, VOCABULARY & SPELLING.
+      Countries are places, so the first cannot sit beside the second — a
+      category error rather than a naming problem, and no rename fixes it while
+      they rank equally. FOREIGN PLACES and THAI PLACES are also separated by
+      FOREIGN PEOPLE. Operator diagnosis 010826: "people, places, countries and
+      language has a clear offness to it."
+      PROPOSAL: PEOPLE / PLACES (Countries and nationalities, Abroad, Thailand)
+      / ORGANISATIONS / LANGUAGE. Four, because an organisation is not a person,
+      a place or a word. Countries demotes to the top layer of places, which is
+      also why capitals kept leaking into it and making it read as a competing
+      places section.
+      COST: a content move across the whole of REFERENCES, mechanical but wide.
+    type: STRUCTURE (candidate)
+    dates: [2026-08-01]
+    verdict: PENDING
+
+  - key: VER-06
+    title: "Content sweep: mandatory pre-edit pass, and a post-edit adversarial re-read"
+    status-thread: DISCUSS — raised 2026-08-01, parked by the operator for a later shift
+    open-question: >
+      (a) PRE-EDIT SWEEP. The 010826 ruling that a direct register
+      contradiction halts the work before the edit begins needs a step to
+      happen in. Nothing in CORE says a read-through can end the work:
+      Editing opens straight into scope and footprint, and every rule after
+      assumes an edit is underway, so the hold is only reachable from inside
+      a job already in progress. A mandatory sweep is what makes the halt
+      executable rather than aspirational.
+      (b) POST-EDIT DUE DILIGENCE. Separate instrument, different catch: not
+      what should have stopped the work, but what the intervention itself
+      introduced or missed. Operator field test on Gemini, 010826, found
+      genuine misses on a second pass.
+      FIELD NOTE — the second pass only worked at hype-max register
+      ("ruthlessly impartial reappraisal", "strictly adhered"). A model asked
+      to CHECK its own output tends to confirm it; asked to find what is
+      wrong with it, it works against its own frame. If this is adopted, the
+      step belongs in CORE and the intensity belongs in the per-model
+      deployment prompt — the same division applied to the training-data note
+      parked on ARC-06.
+    type: PROCESS (candidate)
+    dates: [2026-08-01]
+    verdict: PENDING
+
+  - key: NAM-09
+    title: "Mandatory bkp site-search for names, on a recency/volume metric"
+    status-thread: DISCUSS
+    open-question: >
+      Trigger set and threshold undefined. Proposed 2026-07-02: fire on
+      register miss, Proximity Alert, or first-seen name only (never on a
+      register hit); adopt the form with clearly dominant volume in the
+      most recent 12 months of bangkokpost.com results; recency/volume
+      disagreement or thin results -> flag, don't rule. Offload candidate.
+      2026-07-02: VER-04 relay protocol would carry these searches at
+      zero desk usage — resolves the cost objection if adopted.
+    verdict: PENDING
+
+  - key: ARC-01
+    title: "Modular over monolithic — large front-loads cause errors"
+    status-thread: IN PROCESS (op, 2026-07-02)
+    verdict: PENDING
+
+  - key: ARC-04
+    title: "STATUS sits beside the command as the immediate next step"
+    status-thread: AWAITING RULING — explanation given 2026-07-02
+    open-question: >
+      Deploy is LIVE (Verification Protocol opens with "check STATUS");
+      ruling is effectively ratify-what's-built.
+    verdict: PENDING
+
+  - key: ARC-06
+    title: "Self-contained deployment prompt, optimised by the model for itself"
+    status-thread: DISCUSS — in planning (per-model best-use guides)
+    displaced-material: >
+      HOLDING PEN (310726). The training-data note was cut from CORE by the
+      310726 handoff sweep — model-specific, goes stale on its own, and wrong
+      for Gemini and ChatGPT, so it belongs in the per-model deployment prompt
+      this entry proposes. Parked here verbatim so it is not lost before that
+      prompt exists: "Foundational training data is reliable only to
+      end-January 2026 and degrades before that for fast-moving Thai political
+      fact. Treat the register, not memory, as truth for any status, title,
+      office-holder or life-status claim. Where memory and the register
+      disagree, the register wins; where the register is silent, ask the
+      operator before searching." Cutoff date is per-model and must be
+      restated, not copied, for each.
+    open-question: >
+      Structure agreed in principle: dated appendix per model inside the
+      single upload doc, self-identification trigger ("if you are model X,
+      your decompile instructions follow"). Fable template offered.
+    verdict: PENDING
+
+  - key: ARC-11
+    title: "Naming convention: DDMMYY_facet_descriptor; same-day dupe gets _2"
+    status-thread: WATCHING — op observing single-day multi-edits; not worth clarifying yet
+    verdict: PENDING
+
+  - key: VER-04
+    title: "Relay search protocol (SEARCHQ): batched web lookups via operator paste to an AI search engine"
+    status-thread: >
+      PARTIAL RULING 2026-07-11 — operator ruled Gemini the default
+      SEARCHQ destination (speed, convenience, proven so far; ChatGPT
+      alternative for heavy batch verification). Deployed to BLUEPRINT
+      Relay search section same day. Remainder of entry still PENDING.
+    ruling: >
+      Web lookups the desk cannot or should not spend usage on are
+      batched into a SEARCHQ block appended to returned copy. The
+      operator pastes it to an AI search engine (Google AI search or
+      Bing AI search; relay model was a placeholder) and pastes the
+      results back. The executor does NOTHING beyond running a
+      multi-part search and returning results verbatim — no analysis,
+      no narrative. The desk writes each item as a ready-to-run search
+      with the source named in the query: names -> summary/extraction
+      of prevalence from bangkokpost.com; positions/status -> the desk
+      decides and names the source to query (official site or wire).
+      Form specified in the block: only answers, no narrative, one line
+      per number, NOT FOUND over nothing-found padding. Copy with
+      queries outstanding returns held-not-final, flagged in the Style
+      Log. On paste-back: finalise copy, write STATUS entries
+      (STA-02/STA-03 unaffected).
+      Template:
+      SEARCHQ [DDMMYY - slug]
+      Run each numbered search. Return results verbatim.
+      Only answers, no narrative. One line per number:
+      n | result | source, date   —   nothing found: n | NOT FOUND
+      No follow-up offers. Source name + date only, no raw URLs.
+      If the question's premise is wrong, say so — do not fit the answer.
+      1 site:bangkokpost.com "<name>" — most prevalent spelling, most
+        recent use, rough hit count
+      2 <named source, e.g. official site / Reuters> — <position/status
+        question as of today>
+      3 <named source> — <figure/date to confirm, verbatim>
+    rationale: >
+      Op proposal 2026-07-02: batch the queries with the returned copy so a
+      single paste to a trusted external engine answers them all — near-zero
+      effort for the operator, no desk usage, an authoritative source. Op refinement same day: executor is Google/Bing AI
+      search, not a relay model; verbatim multi-part search only, desk
+      names the source per item, "only answers, no narrative". Desk
+      caveat stands: outstanding queries = held-not-final.
+      FIELD TEST 2026-07-02 (5 engines, 3-item block): Google, ChatGPT,
+      Brave, DDG all returned usable results; Bing failed (human
+      verification wall). Format held except Google's closing offer +
+      tracking-URL junk. Cross-engine agreement 4/4 on both facts.
+      Brave premise-checked: returned NOT FOUND + correction when the
+      desk's question carried a wrong date (UNGA vote was 25 Mar 2026,
+      not June) — the protocol caught a desk-side memory error on its
+      first run. Template amended: "No follow-up offers. Source name +
+      date only — no raw URLs needed."
+      OP INTEL post-test: DDG caps input at 500 chars (return
+      instruction had to be cut); Brave reply came via Leo after the
+      search interface errored; Bing almost certainly broken BY the
+      machine-looking format — search interfaces aggressively filter
+      machine interaction, use natural language there. ChatGPT Plus =
+      frictionless; Google AI advanced sub accepts fully technical
+      requests. Two-tier template adopted:
+      TIER A (assistants: ChatGPT Plus, Google AI advanced) — the full
+      technical block above; may be made more technical still.
+      TIER B (search interfaces: DDG, Brave, Bing fallback) — natural
+      language, under 500 chars, no pipe schema, reads human. Pattern:
+      "Please run three quick searches and give just the answers, one
+      line each, with source and date. 1) On bangkokpost.com, which
+      spelling of <name> appears most often and most recently? 2) Does
+      <figure> currently hold <office>, per <source>? 3) <fact>, per
+      <source>? If anything can't be confirmed, just say not found."
+      Working default: ChatGPT Plus or Google AI (Tier A block); Tier B
+      reserved as fallback; Brave/Leo for premise-sensitive items.
+    type: STANDING-RULE (candidate)
+    dates: [2026-07-02]
+    verdict: PENDING
+
+  - key: VER-05
+    title: "Slug verification on every governance-file fetch; cache-buster refetch on suspicion"
+    status-thread: >
+      RULED 2026-07-15, scope narrowed: approved as desk practice for
+      Claude-lane contexts ONLY — not BLUEPRINT doctrine. Op rationale:
+      the rule presupposes uniform pull methods, but transports differ
+      per model/context (Gemini: operator paste + Drive-synced files,
+      cannot fetch; ChatGPT: attachments, fetch unreliable; Claude:
+      live fetch). Cross-model verification is operator-side: the SLUG
+      READBACK — "read me the slug of each governance doc you hold" —
+      verifies any model on any transport in one line, since version
+      identity lives inside the file. Deploys to the Claude per-model
+      prompt at next recompile; prune this entry on that sweep.
+      Cache-buster mechanics verified 150726: Dub passes query params
+      through (<shortlink>?v=DDMMYY reaches the raw URL intact).
+    ruling: >
+      Any model-side fetch of a governance file (any lane: GitHub raw,
+      filedn, short link) verifies the slug line on arrival against the
+      expected or last-known tag before the content carries authority.
+      On suspicion of staleness, refetch once with a throwaway query
+      param (?v=DDMMYY) to defeat URL-keyed caches; if the slug still
+      disagrees, flag to operator — the operator's browser/IDM is the
+      only ground-truth fetch instrument. Freshness ranking of intake
+      doors: Drive-connector read (live API) >= live web fetch with slug
+      check > synced project knowledge (cached, opaque refresh) >
+      uploaded copy (static, ages from upload).
+    rationale: >
+      INCIDENT 2026-07-15: desk fetch of raw.githubusercontent BLUEPRINT
+      returned an 18-day-stale cached copy (270626 tag) though GitHub
+      main was current at 6ccf891/110726; provider-side fetch-proxy
+      cache, URL-keyed — same URL with ?nocache param returned current
+      content minutes later. Triggered a false stale-repo alarm and a
+      multi-turn wild goose chase. The slug line was the only detector
+      that fired; operator confirmed the drift would not have been caught
+      by eye, even with the slug doing its job. All model-side fetches
+      (Claude, Gemini, ChatGPT proxies) are cache-suspect by
+      construction.
+    type: STANDING-RULE (candidate)
+    dates: [2026-07-15]
+    verdict: PENDING
+
+  - key: ARC-14
+    title: "pCloud Public Folder second lane: verified live, held as static test bed / failover"
+    status-thread: >
+      BUILT AND VERIFIED 2026-07-15. Static snapshot by op design — not
+      auto-updating; slug line is the staleness guard on any future
+      fetch from this lane. Promotion to live = re-enable sync of the
+      clone into the Public Folder companion (also resumes pCloud
+      per-save soft backups, dead since ~050726 when the clone moved).
+      GitHub retained as primary for credibility-by-proximity (op-ruled
+      150726). Cutover gate if ever promoted: filedn propagation-lag
+      test, untested as of 150726.
+    open-question: >
+      Lane verified this session: all four masters raw-served with
+      correct content types at
+      the pCloud Public Folder direct path (operator holds it offline; not recorded here),
+      tags current (110726 set, byte-identical to clone HEAD). Share
+      links (e.pcloud.link) are JS-fronted and NOT model-fetchable;
+      only Public Folder direct links serve raw. Wildcard 301
+      path-forwarding works against either origin; prefer 302/308 if
+      origin may ever change (clients cache 301 permanently).
+    type: ARCHITECTURE (candidate)
+    dates: [2026-07-15]
+    verdict: PENDING
+
+  - key: ARC-15
+    title: "Single master document, rolling internal version; four sections; one slug across the pipeline"
+    status-thread: >
+      IDENTITY SCHEME RULED 2026-07-15, approved without reservation — the
+      slug is the edition, the prefix names the section: extracts stamp <section>@<master-slug>
+      (sta@220726_com_new_procedure = "I am STATUS at edition 220726,
+      last change com"); the master carries the bare slug — unprefixed
+      means "I am the whole". @ separator keeps one greppable token and
+      keeps identity visually apart from the facet field, which shares
+      the section vocabulary. Readback self-diagnoses: four extracts
+      answering different X — the mismatch names the stale file.
+      Remaining open: migration itself (ARC-01 tension, extract
+      compilation mechanics) — see open-question.
+    ruling: >
+      Consolidate the four governance files into one master document
+      with a rolling internal version. Every change anywhere bumps the
+      version; the identifier encodes sequence, date, section and gist
+      (e.g. v127_150726_sta_chadchart-secondterm); exact change detail
+      lives in a one-line changelog block inside the document, keyed to
+      the number. Slug readback becomes a single line on any model,
+      any transport; cross-file version skew becomes structurally
+      impossible.
+    open-question: >
+      Tension with ARC-01 (modular over monolithic — large front-loads
+      cause errors, op 020726) and the Lean RAG architecture line:
+      one doc makes every context carry everything. Candidate
+      resolution: master-with-extracts — the single doc is the master
+      and sole versioned object; the four sections remain as compiled
+      extracts stamped with the master slug, regenerated on change
+      (inverts the current COMPILED.txt relationship). Lean contexts
+      take an extract; a lagging extract self-identifies by its slug.
+      Also weigh: single point of corruption (GATE 1-class bulk swap
+      now hits everything at once — mitigated by git + pCloud
+      revisions); merge/collision concentration in one file across
+      desk, architect and operator edits.
+    rationale: >
+      Op proposal 150726, following the slug-readback ruling in VER-05:
+      one version across all four sections, the internal number moving on
+      every change wherever it falls and encoding the location and detail
+      of that change. Direction of authority fixed by the operator the same
+      session: the four pieces no longer compose the whole — the whole
+      decomposes into the four pieces.
+    type: ARCHITECTURE (candidate)
+    dates: [2026-07-15]
+    verdict: PENDING
+
+  - key: OTH-12
+    title: "PR standalone sidebar block: self-contained Part 3 + invoked conventions + [Head]/[Deck], for no-memory sidebar actors"
+    ruling: >
+      A standalone PR-pass block — PROCESSES Part 3, the Part 1
+      conventions it invokes, and the [Head] 90 / [Deck] 120
+      instruction — is held as 160726_PR-WRITING-NOTES_standalone-
+      sidebar.md in the project folder for sidebar AI use (no register
+      access, no code; Route B stance, no asserted counts). Stamped
+      with source slugs; recompiled on any Part 3 change.
+    rationale: >
+      Op request 2026-07-16: PR writing notes up to date, with
+      headline/sub instructions, saved standalone for sidebar AI
+      without sub-editing memory. First compile was built on
+      cache-stale governance (270626/290626 tags) — VER-05 RECURRENCE:
+      same stale proxy copy served to a fresh fetch a day after the
+      150726 incident; ?v=160726 buster returned the current 110726
+      set; slug line was again the only detector. Same session: the
+      mounted project folder proved to be a stale duplicate rather than
+      the live tree — a broken link to the working home, serving a
+      month-old snapshot. RESOLVED 170726: root cause was a system
+      restore that carried the stale copy through; block-level restores
+      preserve pre-image timestamps, which is what dated its true
+      origin. Any future restore from the same images reproduces it.
+      Operator holds the machine-level detail offline. Not a sync
+      client; push.bat pair cleared by inspection. The live clone was
+      verified at 6ccf891/110726 and mounted direct. Clone-read now precedes fetch+buster as the
+      Claude-lane intake order.
+    type: ARTEFACT + INCIDENT (candidate)
+    dates: [2026-07-16]
+    verdict: PENDING
+
+  - key: OTH-13
+    title: "ChatGPT project-review triage (170726): accepted fixes, rejected doctrine clashes, one planted error warning"
+    status-thread: >
+      PARTIAL RULINGS 2026-07-17: slug lines STAY, endorsed without qualification;
+      yaml format STAYS, polish optional — the distinctive yaml is kept
+      deliberately; genuine corrections ADOPTED — (a) and
+      (b) executed to clone same session (tags
+      170726_refs_dedupe-phrao-thatum, 170726_status_asof-header-fix).
+      CORRECTION to (f): op reports Malaysia Airlines absent from
+      ChatGPT's actual consolidated REFERENCES — the inversion stood
+      in his review text only; if the entry was dropped entirely the
+      naming trap is silently lost, so the pre-deployment desk pass
+      warning stands, reading "silent drop" rather than "planted
+      error". ChatGPT expected to revise suggestions after
+      explanation. Remaining open: (c) STATUS backfill prune,
+      (d) Twitter/X entry.
+    ruling: >
+      ACCEPT as candidates: (a) REFERENCES dedupe — Phrao doubled under
+      Chiang Mai, Tha Tum doubled under Surin (desk-verified in clone
+      170726); (b) STATUS body header still reads "As of: June 5, 2026"
+      under a current slug — refresh at next STATUS edit; (c) STATUS
+      backfill prune to clash-only per the existing 060726 ruling (his
+      "too many lookups" point re-derives it; op concurs); (d) review
+      the Twitter/tweet REFERENCES entry against current house
+      treatment of X.
+      REJECT/WARN: (e) his removal of in-file slug lines ("Git owns
+      version history") directly clashes with VER-05 slug-readback
+      doctrine — most transports are not git, and the slug line was
+      the only detector in both cache incidents (150726, 160726);
+      (f) his consolidated REFERENCES "fixes" Malaysia Airlines to
+      "Malaysian Airlines" — an inversion: the register entry
+      (name: Malaysia Airlines, notes: Not MalaysiaN) exists to BAN
+      the N-form; his copy now mandates the error it guards against —
+      any deployment of his consolidated docs needs a desk pass first;
+      (g) deleting the .txt twins breaks the NotebookLM feed he did
+      not know about — relocating them out of the retrieval path is
+      the reasonable middle; (h) removing model-specific counting
+      intel and the training-cutoff note discards field-tested
+      operational fact without relocating it.
+    rationale: >
+      Op supplied ChatGPT's PROJECT_REVIEW.md 2026-07-17, concurring that
+      STATUS records too many lookups. Desk verified the
+      dupes and header staleness against the live clone same session;
+      Malaysia Airlines inversion verified against both the register
+      entry and Olver's style guide ("Malaysia Airlines (not
+      MalaysiaN)"). His COMMITS-PENDING finding was true at his
+      reviewed commit but already reconciled 150726 and pushed 170726.
+    type: TRIAGE (candidate)
+    dates: [2026-07-17]
+    verdict: PENDING
+
+  - key: ARC-16
+    title: "Model roles & workflow charter — one owner of canonical state; roles by demonstrated strength"
+    ruling: >
+      Proposed allocation (full text: 220726_arc16_pipeline-roles-charter.md).
+      CLAUDE — custody: governance content and canonical record, registry,
+      all pushes, monitoring, folder upkeep; not gatekeeper of individual
+      copy. CHATGPT — prototyping in a mirror repo; import is one-directional
+      (propose in mirror -> operator rules -> Claude imports+pushes; mirror
+      kept synced main->mirror); also a processing candidate. GEMINI —
+      default processor (engine room) + meta job building the status-report
+      command. ROUTING LADDER — Gemini default, ChatGPT overflow/heavy batch,
+      Claude judgement-heavy only; same COMPILED in, same output out, every
+      lane runs VER-05. STATUS-REPORT COMMAND — must PROBE not interview
+      (hand a capability-probe doc, read what returns: fetch+slug readback,
+      live .dcx read, Python count, hold a slug); self-report is the
+      Gemini-Python trap.
+    rationale: >
+      Operator charter, 2026-07-22 (Labour Day): role split to promote
+      specific skills, avoid conflict, and give the simplest possible
+      management. Desk refinements folded in: the import seam as the sole
+      divergence re-entry point; difficulty-based routing so the operator
+      is not the router; probe-not-interview status command (Gemini-Python
+      reading != counting, revised 2026-07-12). Governing principle: one
+      source of truth, one writer — the fault line under the stale-cache,
+      twin-drift and diverged-push incidents.
+    type: STANDING-ARCHITECTURE (candidate)
+    dates: [2026-07-22]
+    verdict: PENDING
+
+  - key: LEN-13
+    title: "Character count is a lossy proxy for column depth on a heavy recast"
+    status-thread: DISCUSS
+    open-question: >
+      A recast that lands OVER target in characters can still set SHORT in
+      the column, because tightening the prose also packs the lines better.
+      Observed 2026-07-28, AI data centre editorial: delivered 3324 chars
+      against a 3292 target (+32, ~1%) and the story still ran short enough
+      that the operator had to have design drop in a pull quote.
+      Greedy-wrap simulation of filed vs recast copy (monospace, not a
+      typesetting engine — treat as indicative only): recast carries 32.9
+      chars/line vs filed 32.5 at a 36-char measure, ~1.2% better fill,
+      worth roughly one line over a 100-line story. Real but far smaller
+      than the hole that was actually filled. CAUSE OF THE REMAINDER IS
+      UNKNOWN — do not assume the density effect explains it.
+      Open: (a) what margin over target should a heavy recast land, given
+      that a ~1% margin is cancelled by the density gain alone; (b) should
+      the margin scale with how much of the body was recast; (c) is there
+      a depth/line figure available post-paste that would beat characters
+      as the acceptance check. Calibration needs one datum the desk has and
+      the model does not: how short it ran, in lines or column inches.
+    verdict: PENDING
+
+  - key: NAM-10
+    title: "Cristina Kirchner has no home after shortened_names was retired"
+    status-thread: DISCUSS
+    open-question: >
+      The entry "Cristina Kirchner: Drop 'de Fernandez' from the middle" was
+      removed from references/foreign_people on 100826 when its group was
+      replaced by the Spanish paternal-surname rule. It was a fact about one
+      person, not a convention, so it does not survive as nomenclature. Whether
+      it survives at all depends on one thing the desk cannot check: do the
+      agencies actually file her as Cristina Fernandez de Kirchner? If they do,
+      the divergence is live and she is a STATUS entry with a house_form and a
+      directive, on the criterion op-ruled 100826 — a live figure whose training
+      or wire form differs from house form belongs where the FLAG directives
+      are. If they do not, she comes out altogether and nothing is lost.
+      Note also that she is absent from STATUS entirely, as is Bashar al-Assad,
+      both found in the same pass through the exemplar list. That list has not
+      been swept against STATUS and may hold more.
+    verdict: >
+      RULED 100826 — CUT. Entered at status/global first, then struck the same
+      day. The agencies do file her in full, but the entry predates the desk's
+      takeover of the guide and has drawn no feedback since; no durable fact
+      could be formed for her presence, and an inherited entry does not earn its
+      place by having been inherited.
+      The decisive ground is narrower and generalises: she was only up for
+      status because shortened_names was being retired underneath her. A
+      category going extinct is evidence about the category, not about its
+      contents. Members of a retired group are re-argued from scratch or they
+      go — they do not migrate by default, and this holds even where a good fact
+      is available. Salvage is not merit.
+      The wider point is NOT closed by this: the exemplar list has still not
+      been swept against STATUS, and Assad remains absent.
