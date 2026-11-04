@@ -71,9 +71,9 @@
         <div class="workspace-meta">
           <span class="meta-item">Edition <strong id="edition-badge" class="mono">Loading...</strong></span>
           <span aria-hidden="true">·</span>
-          <span class="meta-item">Unity Target <strong>BKP 3.0 Live</strong></span>
+          <span class="meta-item">Scope <code class="mono">drive.readonly</code></span>
           <span aria-hidden="true">·</span>
-          <span id="drive-connection-summary" class="meta-item">Google Drive: Not signed in</span>
+          <span id="drive-connection-summary" class="meta-item">Google Drive: Not signed in (in-memory session only)</span>
         </div>
         <div class="workspace-actions">
           <button id="btn-verify-blueprint" class="btn btn-secondary" type="button">
@@ -119,7 +119,7 @@
           <div class="metric-card">
             <span class="metric-label">Google Drive Unity Set</span>
             <strong id="metric-drive-status" class="metric-value">Sign in to audit</strong>
-            <span id="metric-drive-sub" class="metric-sub">7 permanent Google Docs in BKP 3.0 Live</span>
+            <span id="metric-drive-sub" class="metric-sub">Read-only (<code class="mono">drive.readonly</code> · in-memory auth)</span>
           </div>
         </div>
 
@@ -244,13 +244,29 @@
 
       <!-- TAB 5: DEDICATED GOOGLE DRIVE AUDIT & LIVE DIFFING -->
       <section id="tab-drive" class="tab-panel">
+        <!-- Visible Security, Scope & Data Processing Disclosure Card -->
+        <div class="card security-notice-card">
+          <h2>01. Read-Only Permission &amp; Data Processing Boundary</h2>
+          <div class="security-grid">
+            <div>
+              <strong>OAuth Scope Grant:</strong> Requests only <code class="mono">https://www.googleapis.com/auth/drive.readonly</code>. No write, edit, create, move, or delete permissions are requested or granted.
+            </div>
+            <div>
+              <strong>Session Persistence:</strong> Enforces Firebase <code class="mono">inMemoryPersistence</code> (<code class="mono">await setPersistence(auth, inMemoryPersistence)</code>) and holds the OAuth token solely in a JavaScript variable. Reloading the tab clears the session completely.
+            </div>
+            <div id="data-boundary-notice">
+              <strong>Document Body Processing:</strong> Exported Google Docs bodies are compared in-browser by default, or—when Python backend verification is selected—processed on your local computer (<code class="mono">localhost</code>) or sent to the hosting backend when running on a hosted preview URL.
+            </div>
+          </div>
+        </div>
+
         <!-- Auth Prompt Callout when signed out -->
-        <div id="drive-auth-callout" class="card auth-callout">
+        <div id="drive-auth-callout" class="card auth-callout section-spacing">
           <div class="auth-callout-inner">
             <div>
-              <h2>01. Connect Google Drive for Read-Only BKP 3.0 Live Inspection</h2>
+              <h2>02. Connect Google Drive (Strictly Read-Only)</h2>
               <p class="card-desc">
-                Sign in with Google to inspect the live <code>BKP 3.0 Live</code> Shared Drive folder (<code>17KYiUX-VvCY5LWOKnENKoolGgRHT-bR6</code>), verify the portable folder hierarchy (<code>.</code>, <code>DEPLOY</code>, <code>DEPLOY/routed</code>, <code>DEPLOY/routed/modules</code>), audit all 7 permanent Unity Google Docs, and compare live document text against the local <code>301026_gpt_bkp3-1</code> Blueprint sources. All operations are strictly read-only.
+                Sign in with Google using <code class="mono">drive.readonly</code> and <code class="mono">inMemoryPersistence</code> to inspect the <code>BKP 3.0 Live</code> Shared Drive folder (<code>17KYiUX-VvCY5LWOKnENKoolGgRHT-bR6</code>), verify the portable folder hierarchy (<code>.</code>, <code>DEPLOY</code>, <code>DEPLOY/routed</code>, <code>DEPLOY/routed/modules</code>), and audit all 7 permanent Unity Google Docs against local <code>301026_gpt_bkp3-1</code> sources.
               </p>
             </div>
             <button id="btn-google-signin-card" class="gsi-material-button" type="button">
@@ -277,12 +293,19 @@
         <div class="card section-spacing">
           <div class="viewer-header">
             <div>
-              <h2>02. BKP 3.0 Live Folder &amp; 7-Document Audit</h2>
+              <h2>03. BKP 3.0 Live Folder &amp; 7-Document Audit</h2>
               <p class="card-desc">
                 Read-only verification of root folder <code>17KYiUX-VvCY5LWOKnENKoolGgRHT-bR6</code> and the 7 permanent Google Docs in publish order.
               </p>
             </div>
-            <div class="action-row">
+            <div class="audit-controls-row">
+              <div class="engine-select-wrap">
+                <label for="audit-engine-mode">Comparison Processing:</label>
+                <select id="audit-engine-mode">
+                  <option value="browser">In-Browser Only (Never leaves browser)</option>
+                  <option value="backend">Python Server (unity_update.py backend)</option>
+                </select>
+              </div>
               <button id="btn-run-drive-audit" class="btn btn-primary" type="button">
                 Run Live Drive Audit
               </button>
@@ -321,7 +344,7 @@
         <div class="card section-spacing">
           <div class="viewer-header">
             <div>
-              <h2 id="diff-inspector-title">03. Live Blueprint vs. Google Drive Diff Inspector</h2>
+              <h2 id="diff-inspector-title">04. Live Blueprint vs. Google Drive Diff Inspector</h2>
               <p id="diff-inspector-subtitle" class="card-desc">
                 Select any of the 7 permanent Unity roles above — or pick any Google Doc from your Drive below — to inspect its parsed <code>BKP 3.0 UNITY</code> envelope and line-by-line diff against local <code>301026_gpt_bkp3-1</code> sources.
               </p>
@@ -411,15 +434,24 @@
       import {
         getAuth,
         GoogleAuthProvider,
+        inMemoryPersistence,
         onAuthStateChanged,
+        setPersistence,
         signInWithPopup,
       } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-      // In-memory access token cache (never stored in localStorage/sessionStorage per workspace-integration skill)
+      // Strictly read-only OAuth scope
+      const READONLY_DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
+
+      // In-memory access token cache (never stored in IndexedDB/localStorage/sessionStorage)
       let cachedAccessToken = null;
       let isSigningIn = false;
       let firebaseAuth = null;
       let googleProvider = null;
+
+      const isLocalhost =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
 
       const state = {
         overview: null,
@@ -433,6 +465,18 @@
         selectedDiffRole: "blueprint",
         activeDiffRecord: null,
       };
+
+      // Configure default comparison mode & visible data boundary disclosure
+      const engineSelect = document.getElementById("audit-engine-mode");
+      const boundaryNotice = document.getElementById("data-boundary-notice");
+      if (isLocalhost) {
+        boundaryNotice.innerHTML =
+          `<strong>Document Body Processing (Localhost):</strong> Running on <code class="mono">${window.location.hostname}</code>. Both In-Browser comparison and the local Python backend keep exported Google Docs bodies strictly on your computer.`;
+      } else {
+        engineSelect.value = "browser";
+        boundaryNotice.innerHTML =
+          `<strong>Document Body Processing (Hosted Preview):</strong> Running on <code class="mono">${window.location.hostname}</code>. Defaults to <strong>In-Browser Only</strong> so exported Google Docs bodies never leave your browser; switching to Python Server sends exported bodies to the hosted backend for comparison.`;
+      }
 
       function escapeHtml(str) {
         return String(str ?? "")
@@ -474,7 +518,7 @@
         });
       });
 
-      // Initialize Firebase Auth & configured Google Drive scopes
+      // Initialize Firebase Auth with explicit inMemoryPersistence & drive.readonly scope only
       async function initFirebaseWorkspaceAuth() {
         try {
           const res = await fetch("/api/firebase-config");
@@ -484,10 +528,10 @@
 
           const app = initializeApp(cfg.firebase);
           firebaseAuth = getAuth(app);
+          await setPersistence(firebaseAuth, inMemoryPersistence);
+
           googleProvider = new GoogleAuthProvider();
-          (cfg.scopes || []).forEach((scope) => {
-            googleProvider.addScope(scope);
-          });
+          googleProvider.addScope(READONLY_DRIVE_SCOPE);
 
           onAuthStateChanged(firebaseAuth, (user) => {
             if (user && cachedAccessToken) {
@@ -516,13 +560,13 @@
           sessionBar.classList.remove("hidden");
           emailLabel.textContent = state.user.email || state.user.displayName || "Signed in";
           callout.classList.add("hidden");
-          connSummary.innerHTML = `Google Drive: <strong>Connected (${escapeHtml(state.user.email || "Active")})</strong>`;
+          connSummary.innerHTML = `Google Drive: <strong>Connected (${escapeHtml(state.user.email || "Active")} · in-memory)</strong>`;
         } else {
           signInTop.classList.remove("hidden");
           sessionBar.classList.add("hidden");
           emailLabel.textContent = "";
           callout.classList.remove("hidden");
-          connSummary.textContent = "Google Drive: Not signed in";
+          connSummary.textContent = "Google Drive: Not signed in (in-memory session only)";
         }
       }
 
@@ -534,6 +578,8 @@
         }
         try {
           isSigningIn = true;
+          // Explicitly enforce in-memory persistence before opening OAuth popup
+          await setPersistence(firebaseAuth, inMemoryPersistence);
           const result = await signInWithPopup(firebaseAuth, googleProvider);
           const credential = GoogleAuthProvider.credentialFromResult(result);
           if (!credential || !credential.accessToken) {
@@ -567,6 +613,207 @@
       document.getElementById("btn-google-signin-top").addEventListener("click", handleGoogleSignIn);
       document.getElementById("btn-google-signin-card").addEventListener("click", handleGoogleSignIn);
       document.getElementById("btn-google-signout").addEventListener("click", handleGoogleSignOut);
+
+      // Client-side SHA-256, Identity Parsing & Diff Engine (for In-Browser Only mode)
+      async function sha256Hex(text) {
+        const data = new TextEncoder().encode(text);
+        const digest = await crypto.subtle.digest("SHA-256", data);
+        return Array.from(new Uint8Array(digest))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+      }
+
+      function canonicalText(text) {
+        return String(text ?? "").replace(/\r\n/g, "\n").replace(/\r/g, "\n").replace(/\n+$/, "") + "\n";
+      }
+
+      function parseUnityIdentityClient(normText) {
+        const lines = normText.split("\n");
+        if (!lines.length || lines[0] !== "BKP 3.0 UNITY") {
+          return { error: "Document identity must begin with exact header 'BKP 3.0 UNITY'", identity: null };
+        }
+        const recognised = new Set(["ROLE", "SOURCE EDITION", "STATUS", "UNITY SET", "SOURCE", "SOURCE-SHA256"]);
+        const fields = {};
+        for (let i = 1; i < Math.min(lines.length, 33); i++) {
+          const line = lines[i];
+          if (line === "") break;
+          const m = line.match(/^([A-Z][A-Z -]*):\s*(\S.*?)\s*$/);
+          if (!m || !recognised.has(m[1])) break;
+          fields[m[1]] = m[2].trim();
+        }
+        if (!fields["SOURCE EDITION"]) {
+          return { error: "Document identity lacks SOURCE EDITION", identity: null };
+        }
+        return {
+          error: null,
+          identity: {
+            role: (fields["ROLE"] || "").toLowerCase(),
+            edition: fields["SOURCE EDITION"],
+            status: (fields["STATUS"] || "").toLowerCase(),
+            unity_set_digest: fields["UNITY SET"] ? fields["UNITY SET"].toLowerCase() : null,
+            source: fields["SOURCE"] || null,
+            source_sha256: fields["SOURCE-SHA256"] ? fields["SOURCE-SHA256"].toLowerCase() : null,
+          },
+        };
+      }
+
+      function computeSimpleUnifiedDiff(desiredText, observedText, fromLabel, toLabel) {
+        const a = desiredText.replace(/\n$/, "").split("\n");
+        const b = observedText.replace(/\n$/, "").split("\n");
+        if (desiredText === observedText) {
+          return { added: 0, removed: 0, unified_lines: [] };
+        }
+        const lines = [`--- ${fromLabel}`, `+++ ${toLabel}`];
+        let added = 0;
+        let removed = 0;
+        const maxLen = Math.max(a.length, b.length);
+        let i = 0;
+        let j = 0;
+        while (i < a.length || j < b.length) {
+          if (i < a.length && j < b.length && a[i] === b[j]) {
+            i++;
+            j++;
+          } else if (j < b.length && (i >= a.length || a[i] !== b[j])) {
+            if (i < a.length && a[i + 1] === b[j]) {
+              lines.push(`@@ -${i + 1} +${j + 1} @@`);
+              lines.push(`-${a[i]}`);
+              removed++;
+              i++;
+            } else if (j + 1 < b.length && a[i] === b[j + 1]) {
+              lines.push(`@@ -${i + 1} +${j + 1} @@`);
+              lines.push(`+${b[j]}`);
+              added++;
+              j++;
+            } else {
+              lines.push(`@@ -${i + 1} +${j + 1} @@`);
+              if (i < a.length) {
+                lines.push(`-${a[i]}`);
+                removed++;
+                i++;
+              }
+              if (j < b.length) {
+                lines.push(`+${b[j]}`);
+                added++;
+                j++;
+              }
+            }
+          }
+          if (lines.length > 1200) break;
+        }
+        return { added, removed, unified_lines: lines.slice(0, 1200) };
+      }
+
+      async function evaluateRoleInBrowser(planDoc, obs) {
+        const role = planDoc.role;
+        const desiredText = canonicalText(planDoc.desired_text || "");
+        const desiredTextSha = planDoc.desired_text_sha256;
+        const desiredSourceProjSha = planDoc.desired_source_projection_sha256;
+
+        if (!obs || !obs.accessible || obs.text == null) {
+          return {
+            role,
+            title: planDoc.title,
+            document_id: obs?.document_id || planDoc.document_id,
+            expected_parent_path: planDoc.parent_path,
+            accessible: false,
+            status_code: "UNREACHABLE",
+            status_label: "Unreachable / Access Required",
+            error: obs?.error || "Document could not be read from Google Drive.",
+            meta: obs?.meta || {},
+            identity: null,
+            checks: {},
+            hashes: {
+              desired_text_sha256: desiredTextSha,
+              observed_text_sha256: null,
+              desired_source_projection_sha256: desiredSourceProjSha,
+              observed_source_projection_sha256: null,
+            },
+            diff: { added: 0, removed: 0, unified_lines: [] },
+            desired_text: desiredText,
+            observed_text: "",
+          };
+        }
+
+        const cleanedRaw = String(obs.text).replace(/^\ufeff/, "");
+        const normText = canonicalText(cleanedRaw);
+        const obsTextSha = await sha256Hex(normText);
+        const { error: idErr, identity } = parseUnityIdentityClient(normText);
+
+        let obsSourceProjSha = null;
+        if (desiredSourceProjSha) {
+          const paras = normText.replace(/\n$/, "").split("\n");
+          if (paras.length >= 5) {
+            const bodyParas = paras
+              .slice(5)
+              .map((line) => line.normalize("NFC"))
+              .filter((line) => line !== "" && line !== "\uec03" && line !== "\uec02");
+            obsSourceProjSha = await sha256Hex(bodyParas.join("\n") + "\n");
+          }
+        }
+
+        const editionMatch = Boolean(identity && identity.edition === state.unityPlan.edition);
+        const roleMatch = Boolean(identity && identity.role === role);
+        const statusMatch = Boolean(identity && identity.status === (state.unityPlan.status || "current"));
+        const unitySetMatch = Boolean(identity && identity.unity_set_digest === state.unityPlan.unity_set_digest);
+        const textShaMatch = obsTextSha === desiredTextSha;
+        const sourceProjMatch = Boolean(desiredSourceProjSha && obsSourceProjSha === desiredSourceProjSha);
+
+        let statusCode = "CONTENT_DIFF";
+        let statusLabel = "Content Diff Detected";
+        if (idErr) {
+          statusCode = "IDENTITY_ERROR";
+          statusLabel = "Identity Header Error";
+        } else if (!editionMatch) {
+          statusCode = "EDITION_DRIFT";
+          statusLabel = `Edition Drift (${identity?.edition || "unknown"})`;
+        } else if (textShaMatch) {
+          statusCode = "EXACT_MATCH";
+          statusLabel = "Exact Match";
+        } else if (sourceProjMatch && roleMatch && editionMatch) {
+          statusCode = "SOURCE_EQUIVALENT";
+          statusLabel = "Native Source-Equivalent";
+        }
+
+        const diff = computeSimpleUnifiedDiff(
+          desiredText,
+          normText,
+          `local/${planDoc.source} (${state.unityPlan.edition})`,
+          `drive/${obs.meta?.name || planDoc.title}`
+        );
+
+        return {
+          role,
+          title: planDoc.title,
+          document_id: obs.document_id || planDoc.document_id,
+          expected_parent_path: planDoc.parent_path,
+          accessible: true,
+          status_code: statusCode,
+          status_label: statusLabel,
+          identity_error: idErr,
+          meta: obs.meta || {},
+          identity,
+          checks: {
+            title_match: obs.meta?.name === planDoc.title,
+            mime_match: obs.meta?.mimeType === "application/vnd.google-apps.document",
+            not_trashed: !obs.meta?.trashed,
+            edition_match: editionMatch,
+            role_match: roleMatch,
+            status_match: statusMatch,
+            unity_set_match: unitySetMatch,
+            text_sha_match: textShaMatch,
+            source_projection_match: sourceProjMatch,
+          },
+          hashes: {
+            desired_text_sha256: desiredTextSha,
+            observed_text_sha256: obsTextSha,
+            desired_source_projection_sha256: desiredSourceProjSha,
+            observed_source_projection_sha256: obsSourceProjSha,
+          },
+          diff,
+          desired_text: desiredText,
+          observed_text: normText,
+        };
+      }
 
       // Read-only Google Drive API helpers
       async function fetchDriveFileMeta(fileId) {
@@ -691,17 +938,47 @@
             })
           );
 
-          // 3. Send to server-assisted Unity audit & diff engine
-          const auditRes = await fetch("/api/unity/audit-drive", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              root: rootObs,
+          // 3. Evaluate either 100% in-browser or via the Python server
+          const mode = document.getElementById("audit-engine-mode").value;
+          let auditData;
+          if (mode === "browser") {
+            const evaluatedDocs = await Promise.all(
+              docs.map((planDoc) => evaluateRoleInBrowser(planDoc, docsObs[planDoc.role]))
+            );
+            const verifiedCount = evaluatedDocs.filter((r) =>
+              ["EXACT_MATCH", "SOURCE_EQUIVALENT"].includes(r.status_code)
+            ).length;
+            const reachableCount = evaluatedDocs.filter((r) => r.accessible).length;
+            auditData = {
+              edition: state.unityPlan.edition,
+              unity_set_digest: state.unityPlan.unity_set_digest,
+              root: {
+                accessible: rootObs.accessible,
+                observed_title: rootObs.meta?.name,
+                error: rootObs.error,
+              },
               hierarchy: hierarchyObs,
-              documents: docsObs,
-            }),
-          });
-          const auditData = await auditRes.json();
+              summary: {
+                total_targets: evaluatedDocs.length,
+                reachable_targets: reachableCount,
+                verified_targets: verifiedCount,
+                all_verified: verifiedCount === evaluatedDocs.length && rootObs.accessible,
+              },
+              documents: evaluatedDocs,
+            };
+          } else {
+            const auditRes = await fetch("/api/unity/audit-drive", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                root: rootObs,
+                hierarchy: hierarchyObs,
+                documents: docsObs,
+              }),
+            });
+            auditData = await auditRes.json();
+          }
+
           state.driveAudit = auditData;
 
           // Update Overview KPI
@@ -712,7 +989,7 @@
               : `0/${summary.total_targets} Reachable`;
           document.getElementById("metric-drive-sub").textContent =
             summary.reachable_targets > 0
-              ? `${summary.reachable_targets} of 7 permanent Docs read from Drive`
+              ? `${summary.reachable_targets} of 7 permanent Docs read (${mode === "browser" ? "in-browser" : "backend"})`
               : "Current account has no access to BKP 3.0 Live IDs — use Custom Diff Picker below";
 
           renderUnityTable();
@@ -759,7 +1036,6 @@
         container.classList.remove("hidden");
         container.innerHTML = `<div class="meta-inline">Searching Google Drive (read-only)...</div>`;
 
-        // Check if input looks like a direct Google Doc ID (25+ alphanumeric/dash/underscore chars)
         if (/^[A-Za-z0-9_-]{25,}$/.test(rawInput)) {
           await diffCustomDriveDoc(rawInput, role);
           container.classList.add("hidden");
@@ -819,20 +1095,32 @@
             fetchDriveFileMeta(docId),
             exportDriveDocPlainText(docId),
           ]);
-          const res = await fetch("/api/unity/diff-custom", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              role,
-              observed: {
-                accessible: true,
-                document_id: docId,
-                meta,
-                text,
-              },
-            }),
-          });
-          const record = await res.json();
+          const mode = document.getElementById("audit-engine-mode").value;
+          const planDoc = state.unityPlan?.documents?.find((d) => d.role === role);
+          let record;
+          if (mode === "browser" && planDoc) {
+            record = await evaluateRoleInBrowser(planDoc, {
+              accessible: true,
+              document_id: docId,
+              meta,
+              text,
+            });
+          } else {
+            const res = await fetch("/api/unity/diff-custom", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                role,
+                observed: {
+                  accessible: true,
+                  document_id: docId,
+                  meta,
+                  text,
+                },
+              }),
+            });
+            record = await res.json();
+          }
           selectDiffRecord(record);
         } catch (err) {
           selectDiffRecord({
@@ -1069,7 +1357,7 @@
         renderDriveAuditTable();
 
         document.getElementById("diff-inspector-title").textContent =
-          `03. Diff Inspector — ${record.role.toUpperCase()} (${record.title})`;
+          `04. Diff Inspector — ${record.role.toUpperCase()} (${record.title})`;
 
         const statsBar = document.getElementById("diff-stats-bar");
         const unifiedBox = document.getElementById("diff-unified-box");

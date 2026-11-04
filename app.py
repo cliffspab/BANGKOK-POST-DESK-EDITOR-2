@@ -24,21 +24,9 @@ FIREBASE_CONFIG_PATH = ROOT_DIR / "firebase-applet-config.json"
 if str(UNITY_DIR) not in sys.path:
     sys.path.insert(0, str(UNITY_DIR))
 
-# Configured Google Drive OAuth Scopes (synced with set_up_oauth)
+# Strictly read-only Google Drive scope required for metadata, listing, and plain-text export
 SCOPES = [
-    "https://www.googleapis.com/auth/drive",
-    "https://www.googleapis.com/auth/drive.activity",
-    "https://www.googleapis.com/auth/drive.activity.readonly",
-    "https://www.googleapis.com/auth/drive.appdata",
-    "https://www.googleapis.com/auth/drive.apps.readonly",
-    "https://www.googleapis.com/auth/drive.file",
-    "https://www.googleapis.com/auth/drive.install",
-    "https://www.googleapis.com/auth/drive.meet.readonly",
-    "https://www.googleapis.com/auth/drive.metadata",
-    "https://www.googleapis.com/auth/drive.metadata.readonly",
-    "https://www.googleapis.com/auth/drive.photos.readonly",
     "https://www.googleapis.com/auth/drive.readonly",
-    "https://www.googleapis.com/auth/drive.scripts",
 ]
 
 

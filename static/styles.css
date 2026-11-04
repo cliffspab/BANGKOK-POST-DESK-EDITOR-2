@@ -613,6 +613,43 @@ body {
 }
 
 /* Google Drive Audit Specific Elements */
+.security-notice-card {
+  background: var(--surface-alt);
+}
+
+.security-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  font-size: 0.84rem;
+  color: var(--ink);
+  margin-top: 0.5rem;
+}
+
+.audit-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.engine-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.engine-select-wrap select {
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  background: var(--surface);
+}
+
 .auth-callout-inner {
   display: flex;
   justify-content: space-between;
