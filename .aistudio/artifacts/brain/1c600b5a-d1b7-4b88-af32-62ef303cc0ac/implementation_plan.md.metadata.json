@@ -1,0 +1,6 @@
+{
+  "summary": "Implementation plan for read-only Google Drive inspection and live diffing of the BKP 3.0 Live Unity folder and its 7 permanent Google Docs against local Blueprint sources, featuring a dedicated Google Drive tab and live status indicators in the Unity 3.x tab.",
+  "updatedAt": "2026-11-04T12:03:19.546486743Z",
+  "requestFeedback": true,
+  "userFacing": true
+}

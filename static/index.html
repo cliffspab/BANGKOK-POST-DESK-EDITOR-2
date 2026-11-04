@@ -15,39 +15,79 @@
     />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
-    <header class="masthead">
-      <div class="masthead-inner">
-        <div>
-          <div class="kicker">BANGKOK POST EDITORIAL GOVERNANCE &amp; DEPLOYMENT</div>
-          <h1 class="title">Bangkok Post Desk Editor</h1>
-          <p class="subtitle">
-            Single-source Blueprint registry, routed skill deployments, Directory lookup register &amp; Unity 3.x projection verifier
-          </p>
-        </div>
-        <div class="edition-badge-box">
-          <span class="edition-label">LIVE EDITION WITNESS</span>
-          <code id="edition-badge" class="edition-code">Loading...</code>
-          <div class="action-row">
-            <button id="btn-verify-blueprint" class="btn btn-primary" type="button">
-              Verify Blueprint Release
-            </button>
-            <button id="btn-verify-unity" class="btn btn-secondary" type="button">
-              Run Unity Tests (34)
-            </button>
+    <!-- Strict 3-Zone Top Bar Contract -->
+    <header class="topbar">
+      <a href="#overview" class="brand-wordmark" id="brand-home-link">
+        Bangkok Post Desk Editor
+      </a>
+
+      <nav class="topbar-nav" aria-label="Primary Views">
+        <button class="nav-link active" data-tab="overview" type="button">Overview</button>
+        <button class="nav-link" data-tab="skills" type="button">Routed Skills</button>
+        <button class="nav-link" data-tab="directory" type="button">Directory</button>
+        <button class="nav-link" data-tab="unity" type="button">Unity 3.x Plan</button>
+        <button class="nav-link" data-tab="drive" type="button">Google Drive Audit</button>
+        <button class="nav-link" data-tab="decisions" type="button">Decisions</button>
+      </nav>
+
+      <div class="topbar-action" id="auth-header-slot">
+        <button id="btn-google-signin-top" class="gsi-material-button" type="button">
+          <div class="gsi-material-button-state"></div>
+          <div class="gsi-material-button-content-wrapper">
+            <div class="gsi-material-button-icon">
+              <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="display: block;">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                <path fill="none" d="M0 0h48v48H0z"></path>
+              </svg>
+            </div>
+            <span class="gsi-material-button-contents">Sign in with Google</span>
+            <span style="display: none;">Sign in with Google</span>
           </div>
+        </button>
+
+        <div id="user-session-bar" class="user-session-bar hidden">
+          <span id="user-email-label" class="user-email-label"></span>
+          <span aria-hidden="true">·</span>
+          <button id="btn-google-signout" class="btn-text-action" type="button">Sign out</button>
         </div>
       </div>
-      <nav class="tabs" aria-label="Workspace Views">
-        <button class="tab active" data-tab="overview" type="button">Overview &amp; Receipt</button>
-        <button class="tab" data-tab="skills" type="button">Routed Skills &amp; Archives</button>
-        <button class="tab" data-tab="directory" type="button">Directory Register</button>
-        <button class="tab" data-tab="unity" type="button">Unity 3.x Plan</button>
-        <button class="tab" data-tab="decisions" type="button">Open Decisions &amp; Workplan</button>
-      </nav>
     </header>
+
+    <!-- Workspace Sub-Header / Toolbar -->
+    <section class="workspace-strip">
+      <div class="workspace-strip-inner">
+        <div class="workspace-meta">
+          <span class="meta-item">Edition <strong id="edition-badge" class="mono">Loading...</strong></span>
+          <span aria-hidden="true">·</span>
+          <span class="meta-item">Unity Target <strong>BKP 3.0 Live</strong></span>
+          <span aria-hidden="true">·</span>
+          <span id="drive-connection-summary" class="meta-item">Google Drive: Not signed in</span>
+        </div>
+        <div class="workspace-actions">
+          <button id="btn-verify-blueprint" class="btn btn-secondary" type="button">
+            Verify Blueprint Release
+          </button>
+          <button id="btn-verify-unity" class="btn btn-secondary" type="button">
+            Run Unity Tests (34)
+          </button>
+          <button id="btn-audit-drive-toolbar" class="btn btn-primary" type="button">
+            Audit BKP 3.0 Live Drive
+          </button>
+        </div>
+      </div>
+    </section>
 
     <main class="container">
       <section id="verification-banner" class="verification-banner hidden">
@@ -64,22 +104,22 @@
           <div class="metric-card">
             <span class="metric-label">Master Source</span>
             <strong id="metric-source" class="metric-value">BLUEPRINT.md</strong>
-            <code id="metric-source-sha" class="hash-pill">...</code>
+            <span id="metric-source-sha" class="metric-sub mono">...</span>
           </div>
           <div class="metric-card">
             <span class="metric-label">DEPLOY Payload</span>
-            <strong id="metric-deploy-count" class="metric-value">14 files</strong>
-            <span class="metric-sub">Routed &amp; Skill trees</span>
+            <strong id="metric-deploy-count" class="metric-value tabular">14 files</strong>
+            <span class="metric-sub">Routed &amp; Skill deployment trees</span>
           </div>
           <div class="metric-card">
             <span class="metric-label">Upload Skill Bundles</span>
-            <strong id="metric-zip-count" class="metric-value">5 archives</strong>
+            <strong id="metric-zip-count" class="metric-value tabular">5 archives</strong>
             <span class="metric-sub">Self-contained .zip packages</span>
           </div>
           <div class="metric-card">
-            <span class="metric-label">Pending Commits</span>
-            <strong id="metric-pending-status" class="metric-value">Clean</strong>
-            <span class="metric-sub">COMMITS-PENDING.md guard</span>
+            <span class="metric-label">Google Drive Unity Set</span>
+            <strong id="metric-drive-status" class="metric-value">Sign in to audit</strong>
+            <span id="metric-drive-sub" class="metric-sub">7 permanent Google Docs in BKP 3.0 Live</span>
           </div>
         </div>
 
@@ -117,7 +157,7 @@
             <div class="viewer-header">
               <div>
                 <h2 id="skill-viewer-title">BOOT</h2>
-                <code id="skill-viewer-meta" class="hash-pill"></code>
+                <div id="skill-viewer-meta" class="meta-inline mono"></div>
               </div>
               <a id="skill-download-link" class="btn btn-primary" href="/api/upload/boot.zip" download>
                 Download boot.zip
@@ -147,7 +187,7 @@
               </select>
             </div>
           </div>
-          <div id="dir-summary" class="dir-summary"></div>
+          <div id="dir-summary" class="dir-summary tabular"></div>
           <div class="table-wrap">
             <table class="data-table">
               <thead>
@@ -163,17 +203,22 @@
         </div>
       </section>
 
-      <!-- TAB 4: UNITY -->
+      <!-- TAB 4: UNITY 3.X PLAN (WITH LIVE GOOGLE DRIVE STATUS BADGES) -->
       <section id="tab-unity" class="tab-panel">
         <div class="card">
           <div class="viewer-header">
             <div>
-              <h2>BKP 3.x Unity Native Projection Plan</h2>
+              <h2>01. BKP 3.x Unity Native Projection Plan</h2>
               <p class="card-desc">
                 Compiled live via <code>Blueprint/unity/unity_update.py</code>. Content documents update first; <code>Boot_bkp3-0</code> is written last as the ignition witness.
               </p>
             </div>
-            <div id="unity-meta" class="unity-meta"></div>
+            <div class="unity-header-right">
+              <div id="unity-meta" class="unity-meta mono"></div>
+              <button id="btn-unity-refresh-drive" class="btn btn-primary" type="button">
+                Sync Live Drive Status
+              </button>
+            </div>
           </div>
           <div class="table-wrap">
             <table class="data-table">
@@ -184,9 +229,11 @@
                   <th>Permanent Title</th>
                   <th>Parent Folder</th>
                   <th>Source Path</th>
-                  <th>Paragraphs</th>
-                  <th>Substitutions</th>
+                  <th class="num-col">Paragraphs</th>
+                  <th class="num-col">Substitutions</th>
                   <th>Projection SHA-256</th>
+                  <th>Live Google Drive Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody id="unity-table-body"></tbody>
@@ -195,7 +242,156 @@
         </div>
       </section>
 
-      <!-- TAB 5: DECISIONS & WORKPLAN -->
+      <!-- TAB 5: DEDICATED GOOGLE DRIVE AUDIT & LIVE DIFFING -->
+      <section id="tab-drive" class="tab-panel">
+        <!-- Auth Prompt Callout when signed out -->
+        <div id="drive-auth-callout" class="card auth-callout">
+          <div class="auth-callout-inner">
+            <div>
+              <h2>01. Connect Google Drive for Read-Only BKP 3.0 Live Inspection</h2>
+              <p class="card-desc">
+                Sign in with Google to inspect the live <code>BKP 3.0 Live</code> Shared Drive folder (<code>17KYiUX-VvCY5LWOKnENKoolGgRHT-bR6</code>), verify the portable folder hierarchy (<code>.</code>, <code>DEPLOY</code>, <code>DEPLOY/routed</code>, <code>DEPLOY/routed/modules</code>), audit all 7 permanent Unity Google Docs, and compare live document text against the local <code>301026_gpt_bkp3-1</code> Blueprint sources. All operations are strictly read-only.
+              </p>
+            </div>
+            <button id="btn-google-signin-card" class="gsi-material-button" type="button">
+              <div class="gsi-material-button-state"></div>
+              <div class="gsi-material-button-content-wrapper">
+                <div class="gsi-material-button-icon">
+                  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="display: block;">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                    <path fill="none" d="M0 0h48v48H0z"></path>
+                  </svg>
+                </div>
+                <span class="gsi-material-button-contents">Sign in with Google</span>
+                <span style="display: none;">Sign in with Google</span>
+              </div>
+            </button>
+          </div>
+          <div id="drive-auth-error" class="auth-error hidden"></div>
+        </div>
+
+        <!-- Folder Hierarchy & Root Audit Card -->
+        <div class="card section-spacing">
+          <div class="viewer-header">
+            <div>
+              <h2>02. BKP 3.0 Live Folder &amp; 7-Document Audit</h2>
+              <p class="card-desc">
+                Read-only verification of root folder <code>17KYiUX-VvCY5LWOKnENKoolGgRHT-bR6</code> and the 7 permanent Google Docs in publish order.
+              </p>
+            </div>
+            <div class="action-row">
+              <button id="btn-run-drive-audit" class="btn btn-primary" type="button">
+                Run Live Drive Audit
+              </button>
+            </div>
+          </div>
+
+          <div id="drive-root-summary" class="hierarchy-bar">
+            <span>Root Folder: <code>BKP 3.0 Live</code> (<code>17KYiUX-VvCY5LWOKnENKoolGgRHT-bR6</code>)</span>
+            <span aria-hidden="true">·</span>
+            <span id="drive-root-state">Awaiting Google Drive sign-in</span>
+            <span aria-hidden="true">·</span>
+            <span id="drive-hierarchy-state">Portable Hierarchy: <code>.</code> / <code>DEPLOY</code> / <code>DEPLOY/routed</code> / <code>DEPLOY/routed/modules</code></span>
+          </div>
+
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Role</th>
+                  <th>Permanent Title &amp; ID</th>
+                  <th>Observed Edition</th>
+                  <th>Identity &amp; Envelope Checks</th>
+                  <th>Text / Projection Hash Match</th>
+                  <th class="num-col">Diff (+/-)</th>
+                  <th>Audit Status</th>
+                  <th>Inspect</th>
+                </tr>
+              </thead>
+              <tbody id="drive-audit-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Side-by-Side & Unified Diff Inspector -->
+        <div class="card section-spacing">
+          <div class="viewer-header">
+            <div>
+              <h2 id="diff-inspector-title">03. Live Blueprint vs. Google Drive Diff Inspector</h2>
+              <p id="diff-inspector-subtitle" class="card-desc">
+                Select any of the 7 permanent Unity roles above — or pick any Google Doc from your Drive below — to inspect its parsed <code>BKP 3.0 UNITY</code> envelope and line-by-line diff against local <code>301026_gpt_bkp3-1</code> sources.
+              </p>
+            </div>
+            <div class="segmented-control" role="group" aria-label="Diff View Mode">
+              <button type="button" class="seg-btn active" data-diff-mode="unified">Unified Diff</button>
+              <button type="button" class="seg-btn" data-diff-mode="side-by-side">Side-by-Side Text</button>
+              <button type="button" class="seg-btn" data-diff-mode="envelope">Identity &amp; Hashes</button>
+            </div>
+          </div>
+
+          <!-- Custom Drive File Lookup Bar (allows diffing any accessible Google Doc against any local role) -->
+          <div class="custom-diff-bar">
+            <div class="custom-diff-field">
+              <label for="custom-role-select">Compare Against Local Blueprint Role</label>
+              <select id="custom-role-select">
+                <option value="blueprint">BLUEPRINT (Blueprint_bkp3-0)</option>
+                <option value="edit">EDIT (Edit_bkp3-0)</option>
+                <option value="check">CHECK (Check_bkp3-0)</option>
+                <option value="photo">PHOTO (Photo_bkp3-0)</option>
+                <option value="pr">PR (PR_bkp3-0)</option>
+                <option value="directory">DIRECTORY (Directory_bkp3-0)</option>
+                <option value="boot">BOOT (Boot_bkp3-0)</option>
+              </select>
+            </div>
+            <div class="custom-diff-field grow">
+              <label for="custom-drive-search">Search or Paste Any Google Doc ID from Your Drive (Read-Only)</label>
+              <div class="input-with-btn">
+                <input
+                  id="custom-drive-search"
+                  type="text"
+                  placeholder="Search your Drive Google Docs by title (e.g. Blueprint, Edit, Boot) or paste a Document ID..."
+                />
+                <button id="btn-search-drive-docs" class="btn btn-secondary" type="button">
+                  Search Drive Docs
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="custom-drive-results" class="custom-drive-results hidden"></div>
+
+          <!-- Diff Output Views -->
+          <div id="diff-view-unified" class="diff-view-panel active">
+            <div id="diff-stats-bar" class="diff-stats-bar mono">
+              Select a role or run a Live Drive Audit to view unified diff lines.
+            </div>
+            <pre id="diff-unified-box" class="diff-box mono"></pre>
+          </div>
+
+          <div id="diff-view-side-by-side" class="diff-view-panel">
+            <div class="two-col">
+              <div>
+                <h3 id="side-desired-label">Desired Local Blueprint Projection (301026_gpt_bkp3-1)</h3>
+                <pre id="side-desired-box" class="markdown-box tall"></pre>
+              </div>
+              <div>
+                <h3 id="side-observed-label">Observed Google Drive Document Text</h3>
+                <pre id="side-observed-box" class="markdown-box tall"></pre>
+              </div>
+            </div>
+          </div>
+
+          <div id="diff-view-envelope" class="diff-view-panel">
+            <div id="diff-envelope-details" class="envelope-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: DECISIONS & WORKPLAN -->
       <section id="tab-decisions" class="tab-panel">
         <div class="two-col">
           <div class="card">
@@ -210,26 +406,741 @@
       </section>
     </main>
 
-    <script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+      import {
+        getAuth,
+        GoogleAuthProvider,
+        onAuthStateChanged,
+        signInWithPopup,
+      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+      // In-memory access token cache (never stored in localStorage/sessionStorage per workspace-integration skill)
+      let cachedAccessToken = null;
+      let isSigningIn = false;
+      let firebaseAuth = null;
+      let googleProvider = null;
+
       const state = {
         overview: null,
         skills: [],
         selectedSkill: "boot",
         unityPlan: null,
+        unityConfig: null,
         decisions: [],
+        user: null,
+        driveAudit: null,
+        selectedDiffRole: "blueprint",
+        activeDiffRecord: null,
       };
 
-      // Tab navigation
-      document.querySelectorAll(".tab").forEach((btn) => {
+      function escapeHtml(str) {
+        return String(str ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      // Navigation tabs
+      function switchTab(tabId) {
+        document.querySelectorAll(".nav-link").forEach((b) => {
+          b.classList.toggle("active", b.getAttribute("data-tab") === tabId);
+        });
+        document.querySelectorAll(".tab-panel").forEach((p) => {
+          p.classList.toggle("active", p.id === `tab-${tabId}`);
+        });
+      }
+
+      document.querySelectorAll(".nav-link").forEach((btn) => {
         btn.addEventListener("click", () => {
-          document.querySelectorAll(".tab").forEach((b) => b.classList.remove("active"));
-          document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
-          btn.classList.add("active");
-          const tabId = btn.getAttribute("data-tab");
-          document.getElementById(`tab-${tabId}`).classList.add("active");
+          switchTab(btn.getAttribute("data-tab"));
         });
       });
 
+      document.getElementById("brand-home-link").addEventListener("click", (e) => {
+        e.preventDefault();
+        switchTab("overview");
+      });
+
+      // Diff view mode segmented control
+      document.querySelectorAll(".seg-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const mode = btn.getAttribute("data-diff-mode");
+          document.querySelectorAll(".seg-btn").forEach((b) => b.classList.toggle("active", b === btn));
+          document.querySelectorAll(".diff-view-panel").forEach((p) => {
+            p.classList.toggle("active", p.id === `diff-view-${mode}`);
+          });
+        });
+      });
+
+      // Initialize Firebase Auth & configured Google Drive scopes
+      async function initFirebaseWorkspaceAuth() {
+        try {
+          const res = await fetch("/api/firebase-config");
+          const cfg = await res.json();
+          state.unityConfig = cfg.unity_config || {};
+          if (!cfg.firebase || !cfg.firebase.apiKey) return;
+
+          const app = initializeApp(cfg.firebase);
+          firebaseAuth = getAuth(app);
+          googleProvider = new GoogleAuthProvider();
+          (cfg.scopes || []).forEach((scope) => {
+            googleProvider.addScope(scope);
+          });
+
+          onAuthStateChanged(firebaseAuth, (user) => {
+            if (user && cachedAccessToken) {
+              state.user = user;
+              updateAuthUI(true);
+            } else if (!isSigningIn) {
+              cachedAccessToken = null;
+              state.user = null;
+              updateAuthUI(false);
+            }
+          });
+        } catch (err) {
+          console.error("Failed to initialize Firebase Auth:", err);
+        }
+      }
+
+      function updateAuthUI(authenticated) {
+        const signInTop = document.getElementById("btn-google-signin-top");
+        const sessionBar = document.getElementById("user-session-bar");
+        const emailLabel = document.getElementById("user-email-label");
+        const callout = document.getElementById("drive-auth-callout");
+        const connSummary = document.getElementById("drive-connection-summary");
+
+        if (authenticated && state.user && cachedAccessToken) {
+          signInTop.classList.add("hidden");
+          sessionBar.classList.remove("hidden");
+          emailLabel.textContent = state.user.email || state.user.displayName || "Signed in";
+          callout.classList.add("hidden");
+          connSummary.innerHTML = `Google Drive: <strong>Connected (${escapeHtml(state.user.email || "Active")})</strong>`;
+        } else {
+          signInTop.classList.remove("hidden");
+          sessionBar.classList.add("hidden");
+          emailLabel.textContent = "";
+          callout.classList.remove("hidden");
+          connSummary.textContent = "Google Drive: Not signed in";
+        }
+      }
+
+      async function handleGoogleSignIn() {
+        const errBox = document.getElementById("drive-auth-error");
+        errBox.classList.add("hidden");
+        if (!firebaseAuth || !googleProvider) {
+          await initFirebaseWorkspaceAuth();
+        }
+        try {
+          isSigningIn = true;
+          const result = await signInWithPopup(firebaseAuth, googleProvider);
+          const credential = GoogleAuthProvider.credentialFromResult(result);
+          if (!credential || !credential.accessToken) {
+            throw new Error("No OAuth access token returned from Google sign-in.");
+          }
+          cachedAccessToken = credential.accessToken;
+          state.user = result.user;
+          updateAuthUI(true);
+          await runLiveDriveAudit();
+        } catch (err) {
+          console.error("Google sign-in error:", err);
+          errBox.textContent = `Google Sign-In failed: ${err.message || String(err)}`;
+          errBox.classList.remove("hidden");
+        } finally {
+          isSigningIn = false;
+        }
+      }
+
+      async function handleGoogleSignOut() {
+        if (firebaseAuth) {
+          await firebaseAuth.signOut();
+        }
+        cachedAccessToken = null;
+        state.user = null;
+        state.driveAudit = null;
+        updateAuthUI(false);
+        renderUnityTable();
+        renderDriveAuditTable();
+      }
+
+      document.getElementById("btn-google-signin-top").addEventListener("click", handleGoogleSignIn);
+      document.getElementById("btn-google-signin-card").addEventListener("click", handleGoogleSignIn);
+      document.getElementById("btn-google-signout").addEventListener("click", handleGoogleSignOut);
+
+      // Read-only Google Drive API helpers
+      async function fetchDriveFileMeta(fileId) {
+        const fields = "id,name,mimeType,parents,driveId,trashed,modifiedTime,version,headRevisionId,webViewLink,lastModifyingUser(displayName,emailAddress)";
+        const url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?supportsAllDrives=true&fields=${encodeURIComponent(fields)}`;
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${cachedAccessToken}` },
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error?.message || `HTTP ${res.status}`);
+        }
+        return await res.json();
+      }
+
+      async function exportDriveDocPlainText(fileId) {
+        const url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}/export?mimeType=text/plain`;
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${cachedAccessToken}` },
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error?.message || `Export HTTP ${res.status}`);
+        }
+        return await res.text();
+      }
+
+      async function listDriveFolderChildren(parentId) {
+        const q = `'${parentId.replace(/'/g, "\\'")}' in parents and trashed = false`;
+        const fields = "files(id,name,mimeType,parents,driveId,trashed)";
+        const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=${encodeURIComponent(fields)}&pageSize=100`;
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${cachedAccessToken}` },
+        });
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.files || [];
+      }
+
+      // Execute full read-only audit of BKP 3.0 Live folder + 7 permanent Google Docs
+      async function runLiveDriveAudit() {
+        if (!cachedAccessToken) {
+          switchTab("drive");
+          await handleGoogleSignIn();
+          return;
+        }
+
+        const auditBtn = document.getElementById("btn-run-drive-audit");
+        const toolbarBtn = document.getElementById("btn-audit-drive-toolbar");
+        const unityBtn = document.getElementById("btn-unity-refresh-drive");
+        [auditBtn, toolbarBtn, unityBtn].forEach((b) => {
+          if (b) {
+            b.disabled = true;
+            b.textContent = "Auditing Drive...";
+          }
+        });
+
+        try {
+          if (!state.unityPlan) {
+            await loadUnityPlan();
+          }
+          const rootId = state.unityPlan?.root?.id || "17KYiUX-VvCY5LWOKnENKoolGgRHT-bR6";
+          const docs = state.unityPlan?.documents || [];
+
+          // 1. Inspect Root Folder & Hierarchy
+          let rootObs = { accessible: false, meta: null, error: null };
+          let hierarchyObs = { folders: {} };
+          try {
+            const rootMeta = await fetchDriveFileMeta(rootId);
+            rootObs = { accessible: true, meta: rootMeta, error: null };
+            const rootChildren = await listDriveFolderChildren(rootId);
+            const deployFolder = rootChildren.find(
+              (f) => f.name === "DEPLOY" && f.mimeType === "application/vnd.google-apps.folder"
+            );
+            if (deployFolder) {
+              hierarchyObs.folders["DEPLOY"] = deployFolder.id;
+              const deployChildren = await listDriveFolderChildren(deployFolder.id);
+              const routedFolder = deployChildren.find(
+                (f) => f.name === "routed" && f.mimeType === "application/vnd.google-apps.folder"
+              );
+              if (routedFolder) {
+                hierarchyObs.folders["DEPLOY/routed"] = routedFolder.id;
+                const routedChildren = await listDriveFolderChildren(routedFolder.id);
+                const modulesFolder = routedChildren.find(
+                  (f) => f.name === "modules" && f.mimeType === "application/vnd.google-apps.folder"
+                );
+                if (modulesFolder) {
+                  hierarchyObs.folders["DEPLOY/routed/modules"] = modulesFolder.id;
+                }
+              }
+            }
+          } catch (err) {
+            rootObs = { accessible: false, meta: null, error: err.message };
+          }
+
+          // 2. Fetch metadata + exported plain text for all 7 permanent Unity docs concurrently
+          const docsObs = {};
+          await Promise.all(
+            docs.map(async (doc) => {
+              const role = doc.role;
+              const docId = doc.document_id;
+              try {
+                const [meta, text] = await Promise.all([
+                  fetchDriveFileMeta(docId),
+                  exportDriveDocPlainText(docId),
+                ]);
+                docsObs[role] = {
+                  accessible: true,
+                  document_id: docId,
+                  meta,
+                  text,
+                };
+              } catch (err) {
+                docsObs[role] = {
+                  accessible: false,
+                  document_id: docId,
+                  meta: null,
+                  text: null,
+                  error: err.message,
+                };
+              }
+            })
+          );
+
+          // 3. Send to server-assisted Unity audit & diff engine
+          const auditRes = await fetch("/api/unity/audit-drive", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              root: rootObs,
+              hierarchy: hierarchyObs,
+              documents: docsObs,
+            }),
+          });
+          const auditData = await auditRes.json();
+          state.driveAudit = auditData;
+
+          // Update Overview KPI
+          const summary = auditData.summary || {};
+          document.getElementById("metric-drive-status").textContent =
+            summary.reachable_targets > 0
+              ? `${summary.verified_targets}/${summary.total_targets} Verified`
+              : `0/${summary.total_targets} Reachable`;
+          document.getElementById("metric-drive-sub").textContent =
+            summary.reachable_targets > 0
+              ? `${summary.reachable_targets} of 7 permanent Docs read from Drive`
+              : "Current account has no access to BKP 3.0 Live IDs — use Custom Diff Picker below";
+
+          renderUnityTable();
+          renderDriveAuditTable();
+
+          const firstDoc = (auditData.documents || [])[0];
+          if (firstDoc) {
+            selectDiffRecord(firstDoc);
+          }
+        } catch (err) {
+          console.error("Drive audit failed:", err);
+        } finally {
+          if (auditBtn) {
+            auditBtn.disabled = false;
+            auditBtn.textContent = "Run Live Drive Audit";
+          }
+          if (toolbarBtn) {
+            toolbarBtn.disabled = false;
+            toolbarBtn.textContent = "Audit BKP 3.0 Live Drive";
+          }
+          if (unityBtn) {
+            unityBtn.disabled = false;
+            unityBtn.textContent = "Sync Live Drive Status";
+          }
+        }
+      }
+
+      document.getElementById("btn-run-drive-audit").addEventListener("click", runLiveDriveAudit);
+      document.getElementById("btn-audit-drive-toolbar").addEventListener("click", () => {
+        switchTab("drive");
+        runLiveDriveAudit();
+      });
+      document.getElementById("btn-unity-refresh-drive").addEventListener("click", runLiveDriveAudit);
+
+      // Search or load any Google Doc from the user's Drive for custom read-only diffing
+      async function handleSearchDriveDocs() {
+        if (!cachedAccessToken) {
+          await handleGoogleSignIn();
+          if (!cachedAccessToken) return;
+        }
+        const rawInput = document.getElementById("custom-drive-search").value.trim();
+        const role = document.getElementById("custom-role-select").value;
+        const container = document.getElementById("custom-drive-results");
+        container.classList.remove("hidden");
+        container.innerHTML = `<div class="meta-inline">Searching Google Drive (read-only)...</div>`;
+
+        // Check if input looks like a direct Google Doc ID (25+ alphanumeric/dash/underscore chars)
+        if (/^[A-Za-z0-9_-]{25,}$/.test(rawInput)) {
+          await diffCustomDriveDoc(rawInput, role);
+          container.classList.add("hidden");
+          return;
+        }
+
+        try {
+          let q = `mimeType = 'application/vnd.google-apps.document' and trashed = false`;
+          if (rawInput) {
+            const safe = rawInput.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+            q += ` and name contains '${safe}'`;
+          }
+          const fields = "files(id,name,mimeType,modifiedTime,webViewLink,lastModifyingUser(displayName,emailAddress))";
+          const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=${encodeURIComponent(fields)}&pageSize=12`;
+          const res = await fetch(url, {
+            headers: { Authorization: `Bearer ${cachedAccessToken}` },
+          });
+          const data = await res.json();
+          const files = data.files || [];
+          if (!files.length) {
+            container.innerHTML = `<div class="meta-inline">No matching Google Docs found in your Google Drive.</div>`;
+            return;
+          }
+          container.innerHTML = files
+            .map(
+              (f) => `
+              <div class="custom-doc-row">
+                <div>
+                  <strong>${escapeHtml(f.name)}</strong>
+                  <span aria-hidden="true">·</span>
+                  <code class="mono">${escapeHtml(f.id)}</code>
+                  <span aria-hidden="true">·</span>
+                  <span class="muted">Modified ${escapeHtml((f.modifiedTime || "").slice(0, 10))}</span>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" data-custom-doc-id="${escapeHtml(f.id)}">
+                  Diff Against ${escapeHtml(role.toUpperCase())}
+                </button>
+              </div>`
+            )
+            .join("");
+
+          container.querySelectorAll("[data-custom-doc-id]").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+              const docId = btn.getAttribute("data-custom-doc-id");
+              const targetRole = document.getElementById("custom-role-select").value;
+              await diffCustomDriveDoc(docId, targetRole);
+            });
+          });
+        } catch (err) {
+          container.innerHTML = `<div class="status-fail">Drive search failed: ${escapeHtml(err.message)}</div>`;
+        }
+      }
+
+      async function diffCustomDriveDoc(docId, role) {
+        try {
+          const [meta, text] = await Promise.all([
+            fetchDriveFileMeta(docId),
+            exportDriveDocPlainText(docId),
+          ]);
+          const res = await fetch("/api/unity/diff-custom", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              role,
+              observed: {
+                accessible: true,
+                document_id: docId,
+                meta,
+                text,
+              },
+            }),
+          });
+          const record = await res.json();
+          selectDiffRecord(record);
+        } catch (err) {
+          selectDiffRecord({
+            role,
+            title: `${role.toUpperCase()} (Custom Doc ${docId})`,
+            document_id: docId,
+            accessible: false,
+            status_code: "UNREACHABLE",
+            status_label: "Read Failed",
+            error: err.message,
+            desired_text:
+              state.unityPlan?.documents?.find((d) => d.role === role)?.desired_text || "",
+            observed_text: "",
+            diff: { added: 0, removed: 0, unified_lines: [] },
+            checks: {},
+            hashes: {},
+          });
+        }
+      }
+
+      document.getElementById("btn-search-drive-docs").addEventListener("click", handleSearchDriveDocs);
+
+      function statusClassFor(code) {
+        if (code === "EXACT_MATCH" || code === "SOURCE_EQUIVALENT") return "status-pass";
+        if (code === "EDITION_DRIFT" || code === "CONTENT_DIFF") return "status-warn";
+        return "status-fail";
+      }
+
+      function renderUnityTable() {
+        const tbody = document.getElementById("unity-table-body");
+        if (!state.unityPlan) return;
+        const auditByRole = {};
+        if (state.driveAudit && state.driveAudit.documents) {
+          state.driveAudit.documents.forEach((d) => {
+            auditByRole[d.role] = d;
+          });
+        }
+
+        tbody.innerHTML = (state.unityPlan.documents || [])
+          .map((doc, idx) => {
+            const audit = auditByRole[doc.role];
+            let statusHtml = `<span class="muted">Not audited yet</span>`;
+            if (audit) {
+              const cls = statusClassFor(audit.status_code);
+              const ed = audit.identity?.edition ? ` · ${escapeHtml(audit.identity.edition)}` : "";
+              statusHtml = `<span class="${cls}">${escapeHtml(audit.status_label)}</span><span class="mono muted">${ed}</span>`;
+            }
+            return `
+              <tr>
+                <td class="mono tabular">${idx + 1}${doc.role === "boot" ? " · LAST" : ""}</td>
+                <td><strong>${escapeHtml((doc.role || "").toUpperCase())}</strong></td>
+                <td><code class="mono">${escapeHtml(doc.title || "")}</code></td>
+                <td><code class="mono">${escapeHtml(doc.parent_path || ".")}</code></td>
+                <td><code class="mono">${escapeHtml(doc.source || "")}</code></td>
+                <td class="num-col tabular">${doc.paragraph_count}</td>
+                <td class="num-col tabular">${doc.transport_changes}</td>
+                <td><code class="mono">${(doc.desired_native_projection_sha256 || "").slice(0, 14)}…</code></td>
+                <td>${statusHtml}</td>
+                <td>
+                  <button type="button" class="btn-text-action" data-unity-inspect="${escapeHtml(doc.role)}">
+                    Inspect Diff
+                  </button>
+                </td>
+              </tr>`;
+          })
+          .join("");
+
+        tbody.querySelectorAll("[data-unity-inspect]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const role = btn.getAttribute("data-unity-inspect");
+            switchTab("drive");
+            const auditDoc = state.driveAudit?.documents?.find((d) => d.role === role);
+            if (auditDoc) {
+              selectDiffRecord(auditDoc);
+            } else {
+              const planDoc = state.unityPlan?.documents?.find((d) => d.role === role);
+              if (planDoc) {
+                selectDiffRecord({
+                  role: planDoc.role,
+                  title: planDoc.title,
+                  document_id: planDoc.document_id,
+                  accessible: false,
+                  status_code: "UNAUDITED",
+                  status_label: "Local Preview Only (Sign in & Run Audit for Live Diff)",
+                  desired_text: planDoc.desired_text || "",
+                  observed_text: "",
+                  diff: { added: 0, removed: 0, unified_lines: [] },
+                  checks: {},
+                  hashes: {
+                    desired_text_sha256: planDoc.desired_text_sha256,
+                    desired_source_projection_sha256: planDoc.desired_source_projection_sha256,
+                  },
+                });
+              }
+            }
+          });
+        });
+      }
+
+      function renderDriveAuditTable() {
+        const tbody = document.getElementById("drive-audit-tbody");
+        const rootStateEl = document.getElementById("drive-root-state");
+        const hierStateEl = document.getElementById("drive-hierarchy-state");
+
+        if (!state.driveAudit) {
+          const docs = state.unityPlan?.documents || [];
+          tbody.innerHTML = docs
+            .map(
+              (doc, idx) => `
+              <tr>
+                <td class="mono tabular">${idx + 1}${doc.role === "boot" ? " · LAST" : ""}</td>
+                <td><strong>${escapeHtml(doc.role.toUpperCase())}</strong></td>
+                <td>
+                  <strong>${escapeHtml(doc.title)}</strong>
+                  <span aria-hidden="true">·</span>
+                  <code class="mono muted">${escapeHtml(doc.document_id.slice(0, 14))}…</code>
+                </td>
+                <td class="mono muted">—</td>
+                <td class="muted">Sign in &amp; click Run Live Drive Audit</td>
+                <td class="mono muted">Desired: ${(doc.desired_text_sha256 || "").slice(0, 12)}…</td>
+                <td class="num-col tabular muted">—</td>
+                <td class="muted">Pending Audit</td>
+                <td>
+                  <button type="button" class="btn-text-action" data-drive-select="${escapeHtml(doc.role)}">
+                    View Local Projection
+                  </button>
+                </td>
+              </tr>`
+            )
+            .join("");
+
+          tbody.querySelectorAll("[data-drive-select]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const role = btn.getAttribute("data-drive-select");
+              const planDoc = state.unityPlan?.documents?.find((d) => d.role === role);
+              if (planDoc) {
+                selectDiffRecord({
+                  role: planDoc.role,
+                  title: planDoc.title,
+                  document_id: planDoc.document_id,
+                  accessible: false,
+                  status_code: "UNAUDITED",
+                  status_label: "Local Projection Preview",
+                  desired_text: planDoc.desired_text || "",
+                  observed_text: "",
+                  diff: { added: 0, removed: 0, unified_lines: [] },
+                  checks: {},
+                  hashes: {
+                    desired_text_sha256: planDoc.desired_text_sha256,
+                    desired_source_projection_sha256: planDoc.desired_source_projection_sha256,
+                  },
+                });
+              }
+            });
+          });
+          return;
+        }
+
+        const root = state.driveAudit.root || {};
+        if (root.accessible) {
+          rootStateEl.innerHTML = `<span class="status-pass">Root Verified (${escapeHtml(root.observed_title || "BKP 3.0 Live")})</span>`;
+        } else {
+          rootStateEl.innerHTML = `<span class="status-warn">Root Unreachable (${escapeHtml(root.error || "No access")})</span>`;
+        }
+
+        const foundFolders = Object.keys(state.driveAudit.hierarchy?.folders || {});
+        if (foundFolders.length > 0) {
+          hierStateEl.innerHTML = `Verified Folders: <code>.</code> · ${foundFolders.map((f) => `<code>${escapeHtml(f)}</code>`).join(" · ")}`;
+        }
+
+        tbody.innerHTML = (state.driveAudit.documents || [])
+          .map((doc, idx) => {
+            const cls = statusClassFor(doc.status_code);
+            const obsEd = doc.identity?.edition || (doc.accessible ? "Missing Header" : "—");
+            const checks = doc.checks || {};
+            const checkSummary = doc.accessible
+              ? [
+                  checks.role_match ? "ROLE OK" : "ROLE MISMATCH",
+                  checks.edition_match ? "EDITION OK" : "EDITION DIFF",
+                  checks.unity_set_match ? "SET OK" : "SET DIFF",
+                ].join(" · ")
+              : escapeHtml(doc.error || "Unreachable");
+
+            const hashSummary = doc.accessible
+              ? checks.text_sha_match
+                ? `SHA-256 Exact (${(doc.hashes?.observed_text_sha256 || "").slice(0, 10)}…)`
+                : checks.source_projection_match
+                ? `Source-Proj Match (${(doc.hashes?.observed_source_projection_sha256 || "").slice(0, 10)}…)`
+                : `Obs ${(doc.hashes?.observed_text_sha256 || "").slice(0, 8)}… ≠ Des ${(doc.hashes?.desired_text_sha256 || "").slice(0, 8)}…`
+              : `Desired ${(doc.hashes?.desired_text_sha256 || "").slice(0, 10)}…`;
+
+            const diffStat = doc.accessible
+              ? `+${doc.diff?.added || 0} / -${doc.diff?.removed || 0}`
+              : "—";
+
+            const docUrl = `https://docs.google.com/document/d/${encodeURIComponent(doc.document_id)}/edit`;
+
+            return `
+              <tr class="${state.selectedDiffRole === doc.role ? "selected-row" : ""}">
+                <td class="mono tabular">${idx + 1}${doc.role === "boot" ? " · LAST" : ""}</td>
+                <td><strong>${escapeHtml(doc.role.toUpperCase())}</strong></td>
+                <td>
+                  <a href="${docUrl}" target="_blank" rel="noopener noreferrer" class="doc-link">${escapeHtml(doc.title)}</a>
+                  <span aria-hidden="true">·</span>
+                  <code class="mono muted">${escapeHtml(doc.document_id.slice(0, 10))}…</code>
+                </td>
+                <td class="mono">${escapeHtml(obsEd)}</td>
+                <td class="mono">${checkSummary}</td>
+                <td class="mono">${escapeHtml(hashSummary)}</td>
+                <td class="num-col mono tabular">${escapeHtml(diffStat)}</td>
+                <td><span class="${cls}">${escapeHtml(doc.status_label)}</span></td>
+                <td>
+                  <button type="button" class="btn-text-action" data-audit-inspect="${escapeHtml(doc.role)}">
+                    Inspect Diff
+                  </button>
+                </td>
+              </tr>`;
+          })
+          .join("");
+
+        tbody.querySelectorAll("[data-audit-inspect]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const role = btn.getAttribute("data-audit-inspect");
+            const rec = state.driveAudit?.documents?.find((d) => d.role === role);
+            if (rec) selectDiffRecord(rec);
+          });
+        });
+      }
+
+      function selectDiffRecord(record) {
+        state.selectedDiffRole = record.role;
+        state.activeDiffRecord = record;
+        document.getElementById("custom-role-select").value = record.role;
+        renderDriveAuditTable();
+
+        document.getElementById("diff-inspector-title").textContent =
+          `03. Diff Inspector — ${record.role.toUpperCase()} (${record.title})`;
+
+        const statsBar = document.getElementById("diff-stats-bar");
+        const unifiedBox = document.getElementById("diff-unified-box");
+        const desiredBox = document.getElementById("side-desired-box");
+        const observedBox = document.getElementById("side-observed-box");
+        const envBox = document.getElementById("diff-envelope-details");
+
+        desiredBox.textContent = record.desired_text || "";
+        observedBox.textContent =
+          record.observed_text ||
+          (record.error
+            ? `[Google Drive document unreachable: ${record.error}]\n\nTip: Use the search bar above to pick any accessible Google Doc in your Drive and compare it against local ${record.role.toUpperCase()}.`
+            : "[Sign in with Google and click 'Run Live Drive Audit' to load live Drive text.]");
+
+        if (!record.accessible) {
+          statsBar.textContent = `${record.status_label} · Showing local desired projection (${(record.desired_text || "").split("\n").length} lines)`;
+          unifiedBox.textContent =
+            record.desired_text || "No local projection loaded.";
+        } else if ((record.diff?.unified_lines || []).length === 0) {
+          statsBar.textContent = `ZERO DIFFERENCES — Google Drive document matches local desired projection (${(record.desired_text || "").split("\n").length} lines).`;
+          unifiedBox.textContent = "No line differences between local desired Unity projection and Google Drive document.";
+        } else {
+          statsBar.textContent = `${record.status_label} · +${record.diff.added} added lines · -${record.diff.removed} removed lines`;
+          unifiedBox.innerHTML = (record.diff.unified_lines || [])
+            .map((line) => {
+              if (line.startsWith("+") && !line.startsWith("+++")) {
+                return `<span class="diff-line-add">${escapeHtml(line)}</span>`;
+              }
+              if (line.startsWith("-") && !line.startsWith("---")) {
+                return `<span class="diff-line-del">${escapeHtml(line)}</span>`;
+              }
+              if (line.startsWith("@@")) {
+                return `<span class="diff-line-hunk">${escapeHtml(line)}</span>`;
+              }
+              return `<span>${escapeHtml(line)}</span>`;
+            })
+            .join("\n");
+        }
+
+        const id = record.identity || {};
+        const hashes = record.hashes || {};
+        const meta = record.meta || {};
+        envBox.innerHTML = `
+          <div class="envelope-item">
+            <span class="metric-label">Document Title &amp; ID</span>
+            <div class="mono">${escapeHtml(meta.name || record.title)} · ${escapeHtml(record.document_id)}</div>
+          </div>
+          <div class="envelope-item">
+            <span class="metric-label">Parsed Identity Header</span>
+            <div class="mono">ROLE: ${escapeHtml(id.role || "—")} · SOURCE EDITION: ${escapeHtml(id.edition || "—")} · STATUS: ${escapeHtml(id.status || "—")}</div>
+          </div>
+          <div class="envelope-item">
+            <span class="metric-label">Unity Set Digest</span>
+            <div class="mono">${escapeHtml(id.unity_set_digest || "—")}</div>
+          </div>
+          <div class="envelope-item">
+            <span class="metric-label">Desired vs. Observed Text SHA-256</span>
+            <div class="mono">Desired:  ${escapeHtml(hashes.desired_text_sha256 || "—")}<br/>Observed: ${escapeHtml(hashes.observed_text_sha256 || "—")}</div>
+          </div>
+          <div class="envelope-item">
+            <span class="metric-label">Desired vs. Observed Source Projection SHA-256</span>
+            <div class="mono">Desired:  ${escapeHtml(hashes.desired_source_projection_sha256 || "N/A (direct text role)")}<br/>Observed: ${escapeHtml(hashes.observed_source_projection_sha256 || "N/A")}</div>
+          </div>
+          <div class="envelope-item">
+            <span class="metric-label">Drive Revision &amp; Last Modified</span>
+            <div class="mono">Modified: ${escapeHtml(meta.modifiedTime || "—")} · Version: ${escapeHtml(meta.version || "—")} · User: ${escapeHtml(meta.lastModifyingUser?.emailAddress || "—")}</div>
+          </div>
+        `;
+      }
+
+      // Verification Banner helpers
       function showVerification(title, output, passed) {
         const banner = document.getElementById("verification-banner");
         const titleEl = document.getElementById("verification-title");
@@ -340,7 +1251,7 @@
             <button type="button" class="skill-item ${s.id === state.selectedSkill ? "active" : ""}" data-skill="${s.id}">
               <div class="skill-item-top">
                 <strong>${s.name}</strong>
-                <span>${(s.bytes / 1024).toFixed(1)} KB</span>
+                <span class="tabular">${(s.bytes / 1024).toFixed(1)} KB</span>
               </div>
               <div class="skill-item-sub">${s.routed_path}</div>
             </button>`
@@ -395,7 +1306,7 @@
           .map(
             (e) => `
             <tr>
-              <td><code>${escapeHtml(e.path)}</code></td>
+              <td><code class="mono">${escapeHtml(e.path)}</code></td>
               <td><strong>${escapeHtml(e.key)}</strong></td>
               <td>${escapeHtml(e.value)}</td>
             </tr>`
@@ -413,27 +1324,35 @@
         const res = await fetch("/api/unity/plan");
         if (!res.ok) return;
         const data = await res.json();
+        state.unityPlan = data;
         document.getElementById("unity-meta").innerHTML = `
-          <div><strong>Root:</strong> ${escapeHtml(data.root_title || "")}</div>
-          <div><strong>Set Digest:</strong> <code>${(data.unity_set_digest || "").slice(0, 18)}…</code></div>
-          <div><strong>Plan Digest:</strong> <code>${(data.plan_digest || "").slice(0, 18)}…</code></div>
+          <span>Root: ${escapeHtml(data.root?.title || "BKP 3.0 Live")}</span>
+          <span aria-hidden="true">·</span>
+          <span>Set: ${(data.unity_set_digest || "").slice(0, 14)}…</span>
+          <span aria-hidden="true">·</span>
+          <span>Plan: ${(data.plan_digest || "").slice(0, 14)}…</span>
         `;
-        const tbody = document.getElementById("unity-table-body");
-        tbody.innerHTML = (data.documents || [])
-          .map(
-            (doc, idx) => `
-            <tr>
-              <td><span class="order-pill">${idx + 1}${doc.role === "boot" ? " (LAST)" : ""}</span></td>
-              <td><strong>${escapeHtml((doc.role || "").toUpperCase())}</strong></td>
-              <td><code>${escapeHtml(doc.title || "")}</code></td>
-              <td><code>${escapeHtml(doc.parent_path || ".")}</code></td>
-              <td><code>${escapeHtml(doc.source || "")}</code></td>
-              <td>${doc.paragraph_count}</td>
-              <td>${doc.transport_changes}</td>
-              <td><code>${(doc.desired_native_projection_sha256 || "").slice(0, 16)}…</code></td>
-            </tr>`
-          )
-          .join("");
+        renderUnityTable();
+        renderDriveAuditTable();
+        const firstPlanDoc = (data.documents || [])[0];
+        if (firstPlanDoc && !state.activeDiffRecord) {
+          selectDiffRecord({
+            role: firstPlanDoc.role,
+            title: firstPlanDoc.title,
+            document_id: firstPlanDoc.document_id,
+            accessible: false,
+            status_code: "UNAUDITED",
+            status_label: "Local Desired Projection Preview",
+            desired_text: firstPlanDoc.desired_text || "",
+            observed_text: "",
+            diff: { added: 0, removed: 0, unified_lines: [] },
+            checks: {},
+            hashes: {
+              desired_text_sha256: firstPlanDoc.desired_text_sha256,
+              desired_source_projection_sha256: firstPlanDoc.desired_source_projection_sha256,
+            },
+          });
+        }
       }
 
       async function loadDecisions() {
@@ -445,7 +1364,8 @@
             (d) => `
             <article class="decision-card">
               <div class="decision-top">
-                <code class="decision-key">${escapeHtml(d.key || "")}</code>
+                <code class="decision-key mono">${escapeHtml(d.key || "")}</code>
+                <span aria-hidden="true">·</span>
                 <span class="decision-verdict">${escapeHtml(d.verdict || "PENDING")}</span>
               </div>
               <h4>${escapeHtml(d.title || "")}</h4>
@@ -457,14 +1377,7 @@
           .join("");
       }
 
-      function escapeHtml(str) {
-        return String(str)
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
-      }
-
+      initFirebaseWorkspaceAuth();
       loadOverview();
       loadSkills();
       loadDirectory();
