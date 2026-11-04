@@ -260,32 +260,69 @@ def build_directory(q: str, branch: str) -> dict[str, Any]:
     }
 
 
-def build_unity_plan() -> dict[str, Any]:
-    from unity_update import UnityUpdater, load_config
+NATIVE_VERIFICATION_RESERVATION_NOTE = (
+    "Plain-text export verifies canonical visible text only. Complete "
+    "native-projection verification—including headings, lists, links and "
+    "code-block structure—is reserved for a structural Google Docs API read "
+    "and reconstruction."
+)
 
-    config = load_config(UNITY_DIR / "unity-config.json")
-    updater = UnityUpdater(config, BLUEPRINT_DIR, None)
+
+def visible_text_from_native_projection(native_projection: dict[str, Any]) -> str:
+    """Derive canonical visible text directly from a role's desired.native_projection."""
+    from unity_update import _projection_text, canonical_text
+
+    return canonical_text(_projection_text(native_projection))
+
+
+def normalize_exported_visible_text(raw_text: str) -> str:
+    """Normalize a Google Drive plain-text export body (strip UTF-8 BOM, NFC per paragraph, LF)."""
+    from unity_update import canonical_text, normalized_paragraph_text
+
+    cleaned = str(raw_text).lstrip("\ufeff")
+    lines = canonical_text(cleaned).rstrip("\n").split("\n")
+    return canonical_text(normalized_paragraph_text(lines))
+
+
+def build_unity_plan(
+    config_path: Path | None = None,
+    source_root: Path | None = None,
+) -> dict[str, Any]:
+    from unity_update import UnityUpdater, load_config, sha256_text
+
+    config = load_config(config_path or (UNITY_DIR / "unity-config.json"))
+    updater = UnityUpdater(config, source_root or BLUEPRINT_DIR, None)
     plan = updater.source_plan()
     docs = []
     for doc in plan.payload.get("documents", []):
         role = doc.get("role", "")
         desired_obj = updater.desired.get(role)
-        projection = doc.get("desired_native_projection", {})
+        projection = (
+            desired_obj.native_projection
+            if desired_obj is not None
+            else doc.get("desired_native_projection", {})
+        )
+        visible_text = visible_text_from_native_projection(projection)
+        visible_text_sha256 = sha256_text(visible_text)
         docs.append({
             "role": role,
             "title": doc.get("title"),
             "document_id": doc.get("id") or (desired_obj.target.document_id if desired_obj else ""),
             "parent_path": doc.get("parent_path"),
             "source": doc.get("source"),
+            "source_markdown_sha256": doc.get("source_sha256"),
             "source_sha256": doc.get("source_sha256"),
-            "desired_text_sha256": doc.get("desired_text_sha256"),
+            "transport_markdown_sha256": doc.get("transport_sha256"),
             "desired_source_projection_sha256": doc.get("source_projection_sha256"),
             "desired_native_projection_sha256": doc.get(
                 "desired_native_projection_sha256"
             ),
+            "desired_format_link_sha256": doc.get("desired_format_link_sha256"),
+            "desired_visible_text_sha256": visible_text_sha256,
+            "desired_visible_text": visible_text,
             "paragraph_count": len(projection.get("paragraphs", [])),
             "transport_changes": len(doc.get("transport_changes", [])),
-            "desired_text": desired_obj.text if desired_obj else "",
+            "native_verification_scope": NATIVE_VERIFICATION_RESERVATION_NOTE,
         })
     return {
         "edition": plan.payload.get("edition"),
@@ -296,6 +333,7 @@ def build_unity_plan() -> dict[str, Any]:
         "plan_digest": plan.digest,
         "publish_order": list(config.publish_order),
         "google_apply": plan.payload.get("google_apply"),
+        "native_verification_scope": NATIVE_VERIFICATION_RESERVATION_NOTE,
         "documents": docs,
     }
 
@@ -323,21 +361,18 @@ def _evaluate_single_role(
     role: str,
     observed_payload: dict[str, Any],
 ) -> dict[str, Any]:
-    """Compare an observed Google Drive document payload against local desired Unity state."""
+    """Compare an exported Google Drive document body against desired.native_projection visible text."""
     from unity_update import (
-        CODEBLOCK_SOURCE_PROJECTION,
-        NONBLANK_SOURCE_PROJECTION,
         UnityError,
-        canonical_text,
-        codeblock_projection_sha256,
-        nonblank_projection_sha256,
-        paragraph_projection_sha256,
         parse_identity,
         sha256_text,
     )
 
     desired = updater.desired[role]
     target = desired.target
+    desired_visible_text = visible_text_from_native_projection(desired.native_projection)
+    desired_visible_text_sha = sha256_text(desired_visible_text)
+
     accessible = bool(observed_payload.get("accessible", False))
     error_msg = observed_payload.get("error")
     meta = observed_payload.get("meta") or {}
@@ -352,6 +387,9 @@ def _evaluate_single_role(
             "accessible": False,
             "status_code": "UNREACHABLE",
             "status_label": "Unreachable / Access Required",
+            "verification_mode": "plain_text_export_visible_text",
+            "native_structure_verified": False,
+            "native_verification_note": NATIVE_VERIFICATION_RESERVATION_NOTE,
             "error": error_msg or "Document could not be read from Google Drive.",
             "meta": meta,
             "identity": None,
@@ -363,32 +401,32 @@ def _evaluate_single_role(
                 "role_match": False,
                 "status_match": False,
                 "unity_set_match": False,
-                "text_sha_match": False,
-                "source_projection_match": False,
+                "header_source_markdown_sha_match": False,
+                "visible_text_sha_match": False,
+                "native_projection_verified": False,
             },
             "hashes": {
-                "desired_text_sha256": desired.text_sha256,
-                "observed_text_sha256": None,
-                "desired_source_projection_sha256": desired.source_projection_sha256,
-                "observed_source_projection_sha256": None,
+                "source_markdown_sha256": desired.source_sha256,
+                "observed_header_source_markdown_sha256": None,
+                "desired_native_projection_sha256": desired.native_projection_sha256,
+                "desired_format_link_sha256": desired.format_link_sha256,
+                "observed_native_projection_sha256": None,
+                "desired_visible_text_sha256": desired_visible_text_sha,
+                "observed_exported_visible_text_sha256": None,
             },
             "diff": {
                 "added": 0,
                 "removed": 0,
                 "unified_lines": [],
             },
-            "desired_text": desired.text,
-            "observed_text": "",
+            "desired_visible_text": desired_visible_text,
+            "observed_visible_text": "",
         }
 
-    # Normalize text: Google Drive plain-text export may prepend UTF-8 BOM (\ufeff)
-    cleaned_raw = str(raw_text).lstrip("\ufeff")
-    norm_text = canonical_text(cleaned_raw)
-    obs_text_sha = sha256_text(norm_text)
-    paragraphs = tuple(norm_text.rstrip("\n").split("\n"))
-    obs_para_sha = paragraph_projection_sha256(paragraphs)
+    norm_text = normalize_exported_visible_text(str(raw_text))
+    obs_visible_text_sha = sha256_text(norm_text)
 
-    # Parse identity header
+    # Parse identity header from normalized exported visible text
     identity_dict: dict[str, Any] | None = None
     identity_error: str | None = None
     try:
@@ -404,31 +442,6 @@ def _evaluate_single_role(
     except UnityError as exc:
         identity_error = str(exc)
 
-    # Compute source projection hash for photo / directory if configured
-    obs_source_proj_sha: str | None = None
-    source_proj_error: str | None = None
-    if target.native_source_projection is not None:
-        proj_cfg = target.native_source_projection
-        if len(paragraphs) >= proj_cfg.strip_leading_paragraphs:
-            body_paras = paragraphs[proj_cfg.strip_leading_paragraphs :]
-            try:
-                if proj_cfg.algorithm == NONBLANK_SOURCE_PROJECTION:
-                    obs_source_proj_sha = nonblank_projection_sha256(body_paras)
-                elif proj_cfg.algorithm == CODEBLOCK_SOURCE_PROJECTION:
-                    try:
-                        obs_source_proj_sha = codeblock_projection_sha256(
-                            body_paras, require_sentinels=True
-                        )
-                    except UnityError:
-                        # Plain-text export may omit private-use sentinels; fall back to nonblank check
-                        obs_source_proj_sha = nonblank_projection_sha256(
-                            [p for p in body_paras if p not in ("\uec03", "\uec02")]
-                        )
-            except UnityError as exc:
-                source_proj_error = str(exc)
-        else:
-            source_proj_error = "Document is shorter than its configured 5-line Unity envelope."
-
     title_match = meta.get("name") == target.title
     mime_match = meta.get("mimeType") == "application/vnd.google-apps.document"
     not_trashed = not bool(meta.get("trashed", False))
@@ -439,37 +452,35 @@ def _evaluate_single_role(
         identity_dict
         and identity_dict["unity_set_digest"] == updater.unity_set_digest
     )
-    text_sha_match = obs_text_sha == desired.text_sha256
-    source_proj_match = bool(
-        desired.source_projection_sha256 is not None
-        and obs_source_proj_sha == desired.source_projection_sha256
+    header_source_markdown_sha_match = bool(
+        identity_dict
+        and identity_dict["source_sha256"] == desired.source_sha256
     )
+    visible_text_sha_match = obs_visible_text_sha == desired_visible_text_sha
 
-    # Determine overall status
+    # Determine status: plain-text export compares visible text only and never
+    # claims native-format equivalence.
     if identity_error:
         status_code = "IDENTITY_ERROR"
         status_label = "Identity Header Error"
     elif not edition_match:
         status_code = "EDITION_DRIFT"
         status_label = f"Edition Drift ({identity_dict['edition'] if identity_dict else 'unknown'})"
-    elif text_sha_match:
-        status_code = "EXACT_MATCH"
-        status_label = "Exact Match"
-    elif source_proj_match and role_match and edition_match:
-        status_code = "SOURCE_EQUIVALENT"
-        status_label = "Native Source-Equivalent"
+    elif visible_text_sha_match and role_match and status_match and unity_set_match:
+        status_code = "VISIBLE_TEXT_MATCH"
+        status_label = "Visible Text Match"
     else:
-        status_code = "CONTENT_DIFF"
-        status_label = "Content Diff Detected"
+        status_code = "VISIBLE_TEXT_DIFF"
+        status_label = "Visible Text Diff"
 
-    # Compute unified diff
-    desired_lines = desired.text.splitlines()
+    # Compute unified diff against the desired native-projection visible text
+    desired_lines = desired_visible_text.splitlines()
     observed_lines = norm_text.splitlines()
     diff_iter = difflib.unified_diff(
         desired_lines,
         observed_lines,
-        fromfile=f"local/{target.source} ({updater.edition})",
-        tofile=f"drive/{meta.get('name', target.title)}",
+        fromfile=f"desired_native_projection_visible_text/{target.source} ({updater.edition})",
+        tofile=f"drive_plain_text_export/{meta.get('name', target.title)}",
         lineterm="",
         n=3,
     )
@@ -485,8 +496,10 @@ def _evaluate_single_role(
         "accessible": True,
         "status_code": status_code,
         "status_label": status_label,
+        "verification_mode": "plain_text_export_visible_text",
+        "native_structure_verified": False,
+        "native_verification_note": NATIVE_VERIFICATION_RESERVATION_NOTE,
         "identity_error": identity_error,
-        "source_projection_error": source_proj_error,
         "meta": meta,
         "identity": identity_dict,
         "checks": {
@@ -497,16 +510,20 @@ def _evaluate_single_role(
             "role_match": role_match,
             "status_match": status_match,
             "unity_set_match": unity_set_match,
-            "text_sha_match": text_sha_match,
-            "source_projection_match": source_proj_match,
+            "header_source_markdown_sha_match": header_source_markdown_sha_match,
+            "visible_text_sha_match": visible_text_sha_match,
+            "native_projection_verified": False,
         },
         "hashes": {
-            "desired_text_sha256": desired.text_sha256,
-            "observed_text_sha256": obs_text_sha,
-            "desired_paragraph_sha256": desired.paragraph_projection_sha256,
-            "observed_paragraph_sha256": obs_para_sha,
-            "desired_source_projection_sha256": desired.source_projection_sha256,
-            "observed_source_projection_sha256": obs_source_proj_sha,
+            "source_markdown_sha256": desired.source_sha256,
+            "observed_header_source_markdown_sha256": (
+                identity_dict["source_sha256"] if identity_dict else None
+            ),
+            "desired_native_projection_sha256": desired.native_projection_sha256,
+            "desired_format_link_sha256": desired.format_link_sha256,
+            "observed_native_projection_sha256": None,
+            "desired_visible_text_sha256": desired_visible_text_sha,
+            "observed_exported_visible_text_sha256": obs_visible_text_sha,
         },
         "diff": {
             "added": added,
@@ -514,17 +531,21 @@ def _evaluate_single_role(
             "unified_lines": unified_lines[:1200],
             "truncated": len(unified_lines) > 1200,
         },
-        "desired_text": desired.text,
-        "observed_text": norm_text,
+        "desired_visible_text": desired_visible_text,
+        "observed_visible_text": norm_text,
     }
 
 
-def audit_drive_payload(body: dict[str, Any]) -> dict[str, Any]:
-    """Audit observed Google Drive folder + 7 Unity docs against local Blueprint."""
+def audit_drive_payload(
+    body: dict[str, Any],
+    config_path: Path | None = None,
+    source_root: Path | None = None,
+) -> dict[str, Any]:
+    """Audit observed Google Drive folder + 7 Unity docs against local Blueprint native-projection visible text."""
     from unity_update import UnityUpdater, load_config
 
-    config = load_config(UNITY_DIR / "unity-config.json")
-    updater = UnityUpdater(config, BLUEPRINT_DIR, None)
+    config = load_config(config_path or (UNITY_DIR / "unity-config.json"))
+    updater = UnityUpdater(config, source_root or BLUEPRINT_DIR, None)
 
     root_obs = body.get("root") or {}
     hierarchy_obs = body.get("hierarchy") or {}
@@ -550,21 +571,26 @@ def audit_drive_payload(body: dict[str, Any]) -> dict[str, Any]:
         role_obs = docs_obs.get(role) or {}
         results.append(_evaluate_single_role(updater, role, role_obs))
 
-    exact_count = sum(
-        1 for r in results if r["status_code"] in ("EXACT_MATCH", "SOURCE_EQUIVALENT")
+    visible_match_count = sum(
+        1 for r in results if r["status_code"] == "VISIBLE_TEXT_MATCH"
     )
     reachable_count = sum(1 for r in results if r["accessible"])
 
     return {
         "edition": updater.edition,
         "unity_set_digest": updater.unity_set_digest,
+        "verification_mode": "plain_text_export_visible_text",
+        "native_structure_verified": False,
+        "native_verification_note": NATIVE_VERIFICATION_RESERVATION_NOTE,
         "root": root_checks,
         "hierarchy": hierarchy_obs,
         "summary": {
             "total_targets": len(results),
             "reachable_targets": reachable_count,
-            "verified_targets": exact_count,
-            "all_verified": exact_count == len(results) and root_accessible,
+            "visible_text_matched_targets": visible_match_count,
+            "verified_targets": visible_match_count,
+            "all_visible_text_matched": visible_match_count == len(results) and root_accessible,
+            "native_structure_verified": False,
         },
         "documents": results,
     }

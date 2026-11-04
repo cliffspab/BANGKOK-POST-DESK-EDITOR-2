@@ -80,7 +80,7 @@
             Verify Blueprint Release
           </button>
           <button id="btn-verify-unity" class="btn btn-secondary" type="button">
-            Run Unity Tests (34)
+            Run Unity Tests
           </button>
           <button id="btn-audit-drive-toolbar" class="btn btn-primary" type="button">
             Audit BKP 3.0 Live Drive
@@ -232,7 +232,9 @@
                   <th>Source Path</th>
                   <th class="num-col">Paragraphs</th>
                   <th class="num-col">Substitutions</th>
-                  <th>Projection SHA-256</th>
+                  <th>Source Markdown SHA-256</th>
+                  <th>Native-Projection SHA-256</th>
+                  <th>Visible-Text SHA-256</th>
                   <th>Live Google Drive Status</th>
                   <th>Action</th>
                 </tr>
@@ -296,7 +298,7 @@
             <div>
               <h2>03. BKP 3.0 Live Folder &amp; 7-Document Audit</h2>
               <p class="card-desc">
-                Read-only verification of root folder <code>17KYiUX-VvCY5LWOKnENKoolGgRHT-bR6</code> and the 7 permanent Google Docs in publish order.
+                Read-only verification of root folder <code>17KYiUX-VvCY5LWOKnENKoolGgRHT-bR6</code> and the 7 permanent Google Docs in publish order. Compares exported Google Doc plain text against the canonical visible text derived from each role’s <code>desired.native_projection</code> (reporting <strong>Visible Text Match</strong> or <strong>Visible Text Diff</strong>). Complete native-projection verification—including headings, lists, links, and code-block structure—is reserved for a structural Google Docs API read and reconstruction.
               </p>
             </div>
             <div class="audit-controls-row">
@@ -332,9 +334,9 @@
                   <th>Permanent Title &amp; ID</th>
                   <th>Observed Edition</th>
                   <th>Identity &amp; Envelope Checks</th>
-                  <th>Text / Projection Hash Match</th>
+                  <th>Visible-Text Hash (Plain-Text Export)</th>
                   <th class="num-col">Diff (+/-)</th>
-                  <th>Audit Status</th>
+                  <th>Visible-Text Audit Status</th>
                   <th>Inspect</th>
                 </tr>
               </thead>
@@ -401,11 +403,11 @@
           <div id="diff-view-side-by-side" class="diff-view-panel">
             <div class="two-col">
               <div>
-                <h3 id="side-desired-label">Desired Local Blueprint Projection (301026_gpt_bkp3-1)</h3>
+                <h3 id="side-desired-label">Desired Native-Projection Visible Text (301026_gpt_bkp3-1)</h3>
                 <pre id="side-desired-box" class="markdown-box tall"></pre>
               </div>
               <div>
-                <h3 id="side-observed-label">Observed Google Drive Document Text</h3>
+                <h3 id="side-observed-label">Observed Exported Google Doc Visible Text</h3>
                 <pre id="side-observed-box" class="markdown-box tall"></pre>
               </div>
             </div>
@@ -739,11 +741,26 @@
         return { added, removed, unified_lines: lines.slice(0, 1200) };
       }
 
+      function normalizeExportedVisibleText(text) {
+        const cleaned = String(text ?? "")
+          .replace(/^\ufeff/, "")
+          .replace(/\r\n/g, "\n")
+          .replace(/\r/g, "\n")
+          .replace(/\n+$/, "");
+        const lines = cleaned.split("\n").map((line) => line.normalize("NFC"));
+        return lines.join("\n") + "\n";
+      }
+
+      const NATIVE_VERIFICATION_RESERVATION_NOTE =
+        "Plain-text export verifies canonical visible text only. Complete native-projection verification—including headings, lists, links and code-block structure—is reserved for a structural Google Docs API read and reconstruction.";
+
       async function evaluateRoleInBrowser(planDoc, obs) {
         const role = planDoc.role;
-        const desiredText = canonicalText(planDoc.desired_text || "");
-        const desiredTextSha = planDoc.desired_text_sha256;
-        const desiredSourceProjSha = planDoc.desired_source_projection_sha256;
+        const desiredVisibleText = normalizeExportedVisibleText(planDoc.desired_visible_text || "");
+        const desiredVisibleTextSha = planDoc.desired_visible_text_sha256;
+        const sourceMarkdownSha = planDoc.source_markdown_sha256 || planDoc.source_sha256;
+        const desiredNativeProjectionSha = planDoc.desired_native_projection_sha256;
+        const desiredFormatLinkSha = planDoc.desired_format_link_sha256 || null;
 
         if (!obs || !obs.accessible || obs.text == null) {
           return {
@@ -754,67 +771,68 @@
             accessible: false,
             status_code: "UNREACHABLE",
             status_label: "Unreachable / Access Required",
+            verification_mode: "plain_text_export_visible_text",
+            native_structure_verified: false,
+            native_verification_note: NATIVE_VERIFICATION_RESERVATION_NOTE,
             error: obs?.error || "Document could not be read from Google Drive.",
             meta: obs?.meta || {},
             identity: null,
-            checks: {},
+            checks: {
+              title_match: false,
+              mime_match: false,
+              not_trashed: false,
+              edition_match: false,
+              role_match: false,
+              status_match: false,
+              unity_set_match: false,
+              header_source_markdown_sha_match: false,
+              visible_text_sha_match: false,
+              native_projection_verified: false,
+            },
             hashes: {
-              desired_text_sha256: desiredTextSha,
-              observed_text_sha256: null,
-              desired_source_projection_sha256: desiredSourceProjSha,
-              observed_source_projection_sha256: null,
+              source_markdown_sha256: sourceMarkdownSha,
+              observed_header_source_markdown_sha256: null,
+              desired_native_projection_sha256: desiredNativeProjectionSha,
+              desired_format_link_sha256: desiredFormatLinkSha,
+              observed_native_projection_sha256: null,
+              desired_visible_text_sha256: desiredVisibleTextSha,
+              observed_exported_visible_text_sha256: null,
             },
             diff: { added: 0, removed: 0, unified_lines: [] },
-            desired_text: desiredText,
-            observed_text: "",
+            desired_visible_text: desiredVisibleText,
+            observed_visible_text: "",
           };
         }
 
-        const cleanedRaw = String(obs.text).replace(/^\ufeff/, "");
-        const normText = canonicalText(cleanedRaw);
-        const obsTextSha = await sha256Hex(normText);
+        const normText = normalizeExportedVisibleText(obs.text);
+        const obsVisibleTextSha = await sha256Hex(normText);
         const { error: idErr, identity } = parseUnityIdentityClient(normText);
-
-        let obsSourceProjSha = null;
-        if (desiredSourceProjSha) {
-          const paras = normText.replace(/\n$/, "").split("\n");
-          if (paras.length >= 5) {
-            const bodyParas = paras
-              .slice(5)
-              .map((line) => line.normalize("NFC"))
-              .filter((line) => line !== "" && line !== "\uec03" && line !== "\uec02");
-            obsSourceProjSha = await sha256Hex(bodyParas.join("\n") + "\n");
-          }
-        }
 
         const editionMatch = Boolean(identity && identity.edition === state.unityPlan.edition);
         const roleMatch = Boolean(identity && identity.role === role);
         const statusMatch = Boolean(identity && identity.status === (state.unityPlan.status || "current"));
         const unitySetMatch = Boolean(identity && identity.unity_set_digest === state.unityPlan.unity_set_digest);
-        const textShaMatch = obsTextSha === desiredTextSha;
-        const sourceProjMatch = Boolean(desiredSourceProjSha && obsSourceProjSha === desiredSourceProjSha);
+        const headerSourceMarkdownShaMatch = Boolean(identity && identity.source_sha256 === sourceMarkdownSha);
+        const visibleTextShaMatch = obsVisibleTextSha === desiredVisibleTextSha;
 
-        let statusCode = "CONTENT_DIFF";
-        let statusLabel = "Content Diff Detected";
+        let statusCode = "VISIBLE_TEXT_DIFF";
+        let statusLabel = "Visible Text Diff";
         if (idErr) {
           statusCode = "IDENTITY_ERROR";
           statusLabel = "Identity Header Error";
         } else if (!editionMatch) {
           statusCode = "EDITION_DRIFT";
           statusLabel = `Edition Drift (${identity?.edition || "unknown"})`;
-        } else if (textShaMatch) {
-          statusCode = "EXACT_MATCH";
-          statusLabel = "Exact Match";
-        } else if (sourceProjMatch && roleMatch && editionMatch) {
-          statusCode = "SOURCE_EQUIVALENT";
-          statusLabel = "Native Source-Equivalent";
+        } else if (visibleTextShaMatch && roleMatch && statusMatch && unitySetMatch) {
+          statusCode = "VISIBLE_TEXT_MATCH";
+          statusLabel = "Visible Text Match";
         }
 
         const diff = computeSimpleUnifiedDiff(
-          desiredText,
+          desiredVisibleText,
           normText,
-          `local/${planDoc.source} (${state.unityPlan.edition})`,
-          `drive/${obs.meta?.name || planDoc.title}`
+          `desired_native_projection_visible_text/${planDoc.source} (${state.unityPlan.edition})`,
+          `drive_plain_text_export/${obs.meta?.name || planDoc.title}`
         );
 
         return {
@@ -825,6 +843,9 @@
           accessible: true,
           status_code: statusCode,
           status_label: statusLabel,
+          verification_mode: "plain_text_export_visible_text",
+          native_structure_verified: false,
+          native_verification_note: NATIVE_VERIFICATION_RESERVATION_NOTE,
           identity_error: idErr,
           meta: obs.meta || {},
           identity,
@@ -836,18 +857,22 @@
             role_match: roleMatch,
             status_match: statusMatch,
             unity_set_match: unitySetMatch,
-            text_sha_match: textShaMatch,
-            source_projection_match: sourceProjMatch,
+            header_source_markdown_sha_match: headerSourceMarkdownShaMatch,
+            visible_text_sha_match: visibleTextShaMatch,
+            native_projection_verified: false,
           },
           hashes: {
-            desired_text_sha256: desiredTextSha,
-            observed_text_sha256: obsTextSha,
-            desired_source_projection_sha256: desiredSourceProjSha,
-            observed_source_projection_sha256: obsSourceProjSha,
+            source_markdown_sha256: sourceMarkdownSha,
+            observed_header_source_markdown_sha256: identity?.source_sha256 || null,
+            desired_native_projection_sha256: desiredNativeProjectionSha,
+            desired_format_link_sha256: desiredFormatLinkSha,
+            observed_native_projection_sha256: null,
+            desired_visible_text_sha256: desiredVisibleTextSha,
+            observed_exported_visible_text_sha256: obsVisibleTextSha,
           },
           diff,
-          desired_text: desiredText,
-          observed_text: normText,
+          desired_visible_text: desiredVisibleText,
+          observed_visible_text: normText,
         };
       }
 
@@ -988,13 +1013,16 @@
             const evaluatedDocs = await Promise.all(
               docs.map((planDoc) => evaluateRoleInBrowser(planDoc, docsObs[planDoc.role]))
             );
-            const verifiedCount = evaluatedDocs.filter((r) =>
-              ["EXACT_MATCH", "SOURCE_EQUIVALENT"].includes(r.status_code)
+            const verifiedCount = evaluatedDocs.filter(
+              (r) => r.status_code === "VISIBLE_TEXT_MATCH"
             ).length;
             const reachableCount = evaluatedDocs.filter((r) => r.accessible).length;
             auditData = {
               edition: state.unityPlan.edition,
               unity_set_digest: state.unityPlan.unity_set_digest,
+              verification_mode: "plain_text_export_visible_text",
+              native_structure_verified: false,
+              native_verification_note: NATIVE_VERIFICATION_RESERVATION_NOTE,
               root: {
                 accessible: rootObs.accessible,
                 observed_title: rootObs.meta?.name,
@@ -1004,8 +1032,11 @@
               summary: {
                 total_targets: evaluatedDocs.length,
                 reachable_targets: reachableCount,
+                visible_text_matched_targets: verifiedCount,
                 verified_targets: verifiedCount,
-                all_verified: verifiedCount === evaluatedDocs.length && rootObs.accessible,
+                all_visible_text_matched:
+                  verifiedCount === evaluatedDocs.length && rootObs.accessible,
+                native_structure_verified: false,
               },
               documents: evaluatedDocs,
             };
@@ -1031,13 +1062,14 @@
 
           // Update Overview KPI
           const summary = auditData.summary || {};
+          const matchedCount = summary.visible_text_matched_targets ?? summary.verified_targets ?? 0;
           document.getElementById("metric-drive-status").textContent =
             summary.reachable_targets > 0
-              ? `${summary.verified_targets}/${summary.total_targets} Verified`
+              ? `${matchedCount}/${summary.total_targets} Visible Text Match`
               : `0/${summary.total_targets} Reachable`;
           document.getElementById("metric-drive-sub").textContent =
             summary.reachable_targets > 0
-              ? `${summary.reachable_targets} of 7 permanent Docs read (${mode === "browser" ? "in-browser" : "backend"})`
+              ? `${summary.reachable_targets} of 7 permanent Docs read (${mode === "browser" ? "in-browser" : "backend"} visible-text check)`
               : "Current account has no access to BKP 3.0 Live IDs — use Custom Diff Picker below";
 
           renderUnityTable();
@@ -1180,9 +1212,9 @@
             status_code: "UNREACHABLE",
             status_label: "Read Failed",
             error: err.message,
-            desired_text:
-              state.unityPlan?.documents?.find((d) => d.role === role)?.desired_text || "",
-            observed_text: "",
+            desired_visible_text:
+              state.unityPlan?.documents?.find((d) => d.role === role)?.desired_visible_text || "",
+            observed_visible_text: "",
             diff: { added: 0, removed: 0, unified_lines: [] },
             checks: {},
             hashes: {},
@@ -1193,8 +1225,8 @@
       document.getElementById("btn-search-drive-docs").addEventListener("click", handleSearchDriveDocs);
 
       function statusClassFor(code) {
-        if (code === "EXACT_MATCH" || code === "SOURCE_EQUIVALENT") return "status-pass";
-        if (code === "EDITION_DRIFT" || code === "CONTENT_DIFF") return "status-warn";
+        if (code === "VISIBLE_TEXT_MATCH") return "status-pass";
+        if (code === "EDITION_DRIFT" || code === "VISIBLE_TEXT_DIFF") return "status-warn";
         return "status-fail";
       }
 
@@ -1217,6 +1249,9 @@
               const ed = audit.identity?.edition ? ` · ${escapeHtml(audit.identity.edition)}` : "";
               statusHtml = `<span class="${cls}">${escapeHtml(audit.status_label)}</span><span class="mono muted">${ed}</span>`;
             }
+            const sourceSha = doc.source_markdown_sha256 || doc.source_sha256 || "";
+            const nativeSha = doc.desired_native_projection_sha256 || "";
+            const visibleSha = doc.desired_visible_text_sha256 || "";
             return `
               <tr>
                 <td class="mono tabular">${idx + 1}${doc.role === "boot" ? " · LAST" : ""}</td>
@@ -1226,7 +1261,9 @@
                 <td><code class="mono">${escapeHtml(doc.source || "")}</code></td>
                 <td class="num-col tabular">${doc.paragraph_count}</td>
                 <td class="num-col tabular">${doc.transport_changes}</td>
-                <td><code class="mono">${(doc.desired_native_projection_sha256 || "").slice(0, 14)}…</code></td>
+                <td><code class="mono" title="${escapeHtml(sourceSha)}">${sourceSha.slice(0, 12)}…</code></td>
+                <td><code class="mono" title="${escapeHtml(nativeSha)}">${nativeSha.slice(0, 12)}…</code></td>
+                <td><code class="mono" title="${escapeHtml(visibleSha)}">${visibleSha.slice(0, 12)}…</code></td>
                 <td>${statusHtml}</td>
                 <td>
                   <button type="button" class="btn-text-action" data-unity-inspect="${escapeHtml(doc.role)}">
@@ -1254,13 +1291,15 @@
                   accessible: false,
                   status_code: "UNAUDITED",
                   status_label: "Local Preview Only (Sign in & Run Audit for Live Diff)",
-                  desired_text: planDoc.desired_text || "",
-                  observed_text: "",
+                  desired_visible_text: planDoc.desired_visible_text || "",
+                  observed_visible_text: "",
                   diff: { added: 0, removed: 0, unified_lines: [] },
                   checks: {},
                   hashes: {
-                    desired_text_sha256: planDoc.desired_text_sha256,
-                    desired_source_projection_sha256: planDoc.desired_source_projection_sha256,
+                    source_markdown_sha256: planDoc.source_markdown_sha256 || planDoc.source_sha256,
+                    desired_native_projection_sha256: planDoc.desired_native_projection_sha256,
+                    desired_format_link_sha256: planDoc.desired_format_link_sha256,
+                    desired_visible_text_sha256: planDoc.desired_visible_text_sha256,
                   },
                 });
               }
@@ -1289,12 +1328,12 @@
                 </td>
                 <td class="mono muted">—</td>
                 <td class="muted">Sign in &amp; click Run Live Drive Audit</td>
-                <td class="mono muted">Desired: ${(doc.desired_text_sha256 || "").slice(0, 12)}…</td>
+                <td class="mono muted">Desired Visible Text: ${(doc.desired_visible_text_sha256 || "").slice(0, 12)}…</td>
                 <td class="num-col tabular muted">—</td>
                 <td class="muted">Pending Audit</td>
                 <td>
                   <button type="button" class="btn-text-action" data-drive-select="${escapeHtml(doc.role)}">
-                    View Local Projection
+                    View Visible-Text Projection
                   </button>
                 </td>
               </tr>`
@@ -1312,14 +1351,16 @@
                   document_id: planDoc.document_id,
                   accessible: false,
                   status_code: "UNAUDITED",
-                  status_label: "Local Projection Preview",
-                  desired_text: planDoc.desired_text || "",
-                  observed_text: "",
+                  status_label: "Local Native-Projection Visible Text Preview",
+                  desired_visible_text: planDoc.desired_visible_text || "",
+                  observed_visible_text: "",
                   diff: { added: 0, removed: 0, unified_lines: [] },
                   checks: {},
                   hashes: {
-                    desired_text_sha256: planDoc.desired_text_sha256,
-                    desired_source_projection_sha256: planDoc.desired_source_projection_sha256,
+                    source_markdown_sha256: planDoc.source_markdown_sha256 || planDoc.source_sha256,
+                    desired_native_projection_sha256: planDoc.desired_native_projection_sha256,
+                    desired_format_link_sha256: planDoc.desired_format_link_sha256,
+                    desired_visible_text_sha256: planDoc.desired_visible_text_sha256,
                   },
                 });
               }
@@ -1353,13 +1394,13 @@
                 ].join(" · ")
               : escapeHtml(doc.error || "Unreachable");
 
+            const obsVisSha = doc.hashes?.observed_exported_visible_text_sha256 || "";
+            const desVisSha = doc.hashes?.desired_visible_text_sha256 || "";
             const hashSummary = doc.accessible
-              ? checks.text_sha_match
-                ? `SHA-256 Exact (${(doc.hashes?.observed_text_sha256 || "").slice(0, 10)}…)`
-                : checks.source_projection_match
-                ? `Source-Proj Match (${(doc.hashes?.observed_source_projection_sha256 || "").slice(0, 10)}…)`
-                : `Obs ${(doc.hashes?.observed_text_sha256 || "").slice(0, 8)}… ≠ Des ${(doc.hashes?.desired_text_sha256 || "").slice(0, 8)}…`
-              : `Desired ${(doc.hashes?.desired_text_sha256 || "").slice(0, 10)}…`;
+              ? checks.visible_text_sha_match
+                ? `Visible-Text SHA Match (${obsVisSha.slice(0, 10)}…)`
+                : `Exported ${obsVisSha.slice(0, 8)}… ≠ Desired ${desVisSha.slice(0, 8)}…`
+              : `Desired Visible: ${desVisSha.slice(0, 10)}…`;
 
             const diffStat = doc.accessible
               ? `+${doc.diff?.added || 0} / -${doc.diff?.removed || 0}`
@@ -1414,22 +1455,25 @@
         const observedBox = document.getElementById("side-observed-box");
         const envBox = document.getElementById("diff-envelope-details");
 
-        desiredBox.textContent = record.desired_text || "";
+        const desiredVisibleText = record.desired_visible_text ?? record.desired_text ?? "";
+        const observedVisibleText = record.observed_visible_text ?? record.observed_text ?? "";
+
+        desiredBox.textContent = desiredVisibleText;
         observedBox.textContent =
-          record.observed_text ||
+          observedVisibleText ||
           (record.error
-            ? `[Google Drive document unreachable: ${record.error}]\n\nTip: Use the search bar above to pick any accessible Google Doc in your Drive and compare it against local ${record.role.toUpperCase()}.`
-            : "[Sign in with Google and click 'Run Live Drive Audit' to load live Drive text.]");
+            ? `[Google Drive document unreachable: ${record.error}]\n\nTip: Use the search bar above to pick any accessible Google Doc in your Drive and compare its exported plain text against local ${record.role.toUpperCase()} desired.native_projection visible text.`
+            : "[Sign in with Google and click 'Run Live Drive Audit' to load live Drive exported visible text.]");
 
         if (!record.accessible) {
-          statsBar.textContent = `${record.status_label} · Showing local desired projection (${(record.desired_text || "").split("\n").length} lines)`;
+          statsBar.textContent = `${record.status_label} · Showing local desired.native_projection visible text (${desiredVisibleText.split("\n").length} lines)`;
           unifiedBox.textContent =
-            record.desired_text || "No local projection loaded.";
+            desiredVisibleText || "No local visible-text projection loaded.";
         } else if ((record.diff?.unified_lines || []).length === 0) {
-          statsBar.textContent = `ZERO DIFFERENCES — Google Drive document matches local desired projection (${(record.desired_text || "").split("\n").length} lines).`;
-          unifiedBox.textContent = "No line differences between local desired Unity projection and Google Drive document.";
+          statsBar.textContent = `VISIBLE TEXT MATCH — Exported Google Doc body matches desired.native_projection visible text (${desiredVisibleText.split("\n").length} lines). Native structure (headings, lists, links, code blocks) is reserved for structural Docs API verification.`;
+          unifiedBox.textContent = "No visible-text line differences between desired.native_projection visible text and the exported Google Doc plain text.";
         } else {
-          statsBar.textContent = `${record.status_label} · +${record.diff.added} added lines · -${record.diff.removed} removed lines`;
+          statsBar.textContent = `${record.status_label} · +${record.diff.added} added lines · -${record.diff.removed} removed lines (compared against desired.native_projection visible text)`;
           unifiedBox.innerHTML = (record.diff.unified_lines || [])
             .map((line) => {
               if (line.startsWith("+") && !line.startsWith("+++")) {
@@ -1451,7 +1495,7 @@
         const meta = record.meta || {};
         envBox.innerHTML = `
           <div class="envelope-item">
-            <span class="metric-label">Document Title &amp; ID</span>
+            <span class="metric-label">Document Title &amp; Protected ID</span>
             <div class="mono">${escapeHtml(meta.name || record.title)} · ${escapeHtml(record.document_id)}</div>
           </div>
           <div class="envelope-item">
@@ -1463,12 +1507,16 @@
             <div class="mono">${escapeHtml(id.unity_set_digest || "—")}</div>
           </div>
           <div class="envelope-item">
-            <span class="metric-label">Desired vs. Observed Text SHA-256</span>
-            <div class="mono">Desired:  ${escapeHtml(hashes.desired_text_sha256 || "—")}<br/>Observed: ${escapeHtml(hashes.observed_text_sha256 || "—")}</div>
+            <span class="metric-label">1. Source Markdown SHA-256 (Guarded Local Source vs. Header Witness)</span>
+            <div class="mono">Local Source Markdown:  ${escapeHtml(hashes.source_markdown_sha256 || "—")}<br/>Observed Header Witness: ${escapeHtml(hashes.observed_header_source_markdown_sha256 || "—")}</div>
           </div>
           <div class="envelope-item">
-            <span class="metric-label">Desired vs. Observed Source Projection SHA-256</span>
-            <div class="mono">Desired:  ${escapeHtml(hashes.desired_source_projection_sha256 || "N/A (direct text role)")}<br/>Observed: ${escapeHtml(hashes.observed_source_projection_sha256 || "N/A")}</div>
+            <span class="metric-label">2. Exported Visible-Text SHA-256 (desired.native_projection Visible Text vs. Drive Plain-Text Export)</span>
+            <div class="mono">Desired Visible Text:   ${escapeHtml(hashes.desired_visible_text_sha256 || "—")}<br/>Exported Visible Text:  ${escapeHtml(hashes.observed_exported_visible_text_sha256 || "—")}</div>
+          </div>
+          <div class="envelope-item">
+            <span class="metric-label">3. Native-Projection SHA-256 (Structural Google Docs API — Headings, Lists, Links &amp; Code Blocks)</span>
+            <div class="mono">Desired Native Projection: ${escapeHtml(hashes.desired_native_projection_sha256 || "—")}<br/>Desired Format/Link Hash:  ${escapeHtml(hashes.desired_format_link_sha256 || "—")}<br/>Observed Native Structure: ${escapeHtml(hashes.observed_native_projection_sha256 || "Reserved for structural Google Docs API read & reconstruction (not claimed from plain-text export)")}</div>
           </div>
           <div class="envelope-item">
             <span class="metric-label">Drive Revision &amp; Last Modified</span>
@@ -1513,7 +1561,7 @@
       document.getElementById("btn-verify-unity").addEventListener("click", async (e) => {
         const btn = e.currentTarget;
         btn.disabled = true;
-        btn.textContent = "Running 34 Tests...";
+        btn.textContent = "Running Unity Tests...";
         try {
           const res = await fetch("/api/verify/unity", { method: "POST" });
           const data = await res.json();
@@ -1524,7 +1572,7 @@
           );
         } finally {
           btn.disabled = false;
-          btn.textContent = "Run Unity Tests (34)";
+          btn.textContent = "Run Unity Tests";
         }
       });
 
@@ -1675,7 +1723,7 @@
             document.getElementById("unity-meta").innerHTML = `<span class="status-fail">Plan Error: ${escapeHtml(errMsg)}</span>`;
             const unityTbody = document.getElementById("unity-table-body");
             if (unityTbody) {
-              unityTbody.innerHTML = `<tr><td colspan="10" class="status-fail mono">Local Unity Plan Failed: ${escapeHtml(errMsg)}</td></tr>`;
+              unityTbody.innerHTML = `<tr><td colspan="12" class="status-fail mono">Local Unity Plan Failed: ${escapeHtml(errMsg)}</td></tr>`;
             }
             const driveTbody = document.getElementById("drive-audit-tbody");
             if (driveTbody && !state.driveAudit) {
@@ -1703,14 +1751,16 @@
               document_id: firstPlanDoc.document_id,
               accessible: false,
               status_code: "UNAUDITED",
-              status_label: "Local Desired Projection Preview",
-              desired_text: firstPlanDoc.desired_text || "",
-              observed_text: "",
+              status_label: "Local Native-Projection Visible Text Preview",
+              desired_visible_text: firstPlanDoc.desired_visible_text || "",
+              observed_visible_text: "",
               diff: { added: 0, removed: 0, unified_lines: [] },
               checks: {},
               hashes: {
-                desired_text_sha256: firstPlanDoc.desired_text_sha256,
-                desired_source_projection_sha256: firstPlanDoc.desired_source_projection_sha256,
+                source_markdown_sha256: firstPlanDoc.source_markdown_sha256 || firstPlanDoc.source_sha256,
+                desired_native_projection_sha256: firstPlanDoc.desired_native_projection_sha256,
+                desired_format_link_sha256: firstPlanDoc.desired_format_link_sha256,
+                desired_visible_text_sha256: firstPlanDoc.desired_visible_text_sha256,
               },
             });
           }
@@ -1722,7 +1772,7 @@
           document.getElementById("unity-meta").innerHTML = `<span class="status-fail">Plan Error: ${escapeHtml(errMsg)}</span>`;
           const unityTbody = document.getElementById("unity-table-body");
           if (unityTbody) {
-            unityTbody.innerHTML = `<tr><td colspan="10" class="status-fail mono">Local Unity Plan Failed: ${escapeHtml(errMsg)}</td></tr>`;
+            unityTbody.innerHTML = `<tr><td colspan="12" class="status-fail mono">Local Unity Plan Failed: ${escapeHtml(errMsg)}</td></tr>`;
           }
           const driveTbody = document.getElementById("drive-audit-tbody");
           if (driveTbody && !state.driveAudit) {

@@ -1023,6 +1023,207 @@ class UnityUpdaterTests(unittest.TestCase):
         self.assertEqual(backend.read_document(boot_id).text, original_boot_text)
         self.assertEqual(backend.writes[-1], boot_id)
 
+    def test_build_unity_plan_exposes_native_projection_visible_text_and_distinct_hashes(self) -> None:
+        import dataclasses
+        import sys
+
+        repo_root = CANDIDATE_ROOT.parents[1]
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
+        import app as console_app
+        from unity_update import _projection_text
+
+        plan_data = console_app.build_unity_plan(
+            config_path=self.config_path,
+            source_root=self.source_root,
+        )
+        updater = UnityUpdater(self.config, self.source_root, None)
+        by_role = {doc["role"]: doc for doc in plan_data["documents"]}
+        self.assertEqual(set(by_role), set(self.config.publish_order))
+
+        for role, doc in by_role.items():
+            desired = updater.desired[role]
+            expected_visible = canonical_text(_projection_text(desired.native_projection))
+            self.assertEqual(doc["desired_visible_text"], expected_visible)
+            self.assertEqual(
+                doc["desired_visible_text_sha256"],
+                sha256_text(expected_visible),
+            )
+            self.assertNotIn("desired_text", doc)
+            self.assertNotIn("desired_text_sha256", doc)
+            self.assertEqual(doc["source_markdown_sha256"], desired.source_sha256)
+            self.assertEqual(
+                doc["desired_native_projection_sha256"],
+                desired.native_projection_sha256,
+            )
+            self.assertEqual(
+                doc["desired_format_link_sha256"],
+                desired.format_link_sha256,
+            )
+            self.assertNotEqual(
+                doc["source_markdown_sha256"],
+                doc["desired_visible_text_sha256"],
+            )
+            self.assertNotEqual(
+                doc["desired_native_projection_sha256"],
+                doc["desired_visible_text_sha256"],
+            )
+
+        # Even if DesiredDocument.text held raw Markdown, visible_text_from_native_projection
+        # derives solely from desired.native_projection.
+        edit_desired = updater.desired["edit"]
+        mutated_edit = dataclasses.replace(
+            edit_desired,
+            text="---\nname: edit\n---\n# Raw Markdown\n- **Bold** [link](https://example.test)\n",
+            text_sha256=sha256_text("---\nname: edit\n---\n# Raw Markdown\n- **Bold** [link](https://example.test)\n"),
+        )
+        updater.desired["edit"] = mutated_edit
+        eval_res = console_app._evaluate_single_role(
+            updater,
+            "edit",
+            {
+                "accessible": True,
+                "document_id": edit_desired.target.document_id,
+                "meta": {
+                    "name": edit_desired.target.title,
+                    "mimeType": GOOGLE_DOC_MIME,
+                    "trashed": False,
+                },
+                "text": console_app.visible_text_from_native_projection(
+                    edit_desired.native_projection
+                ),
+            },
+        )
+        self.assertEqual(eval_res["status_code"], "VISIBLE_TEXT_MATCH")
+        self.assertEqual(eval_res["status_label"], "Visible Text Match")
+        self.assertEqual(eval_res["diff"]["added"], 0)
+        self.assertEqual(eval_res["diff"]["removed"], 0)
+
+    def test_markdown_to_native_formatting_changes_produce_visible_text_match_without_false_diff(self) -> None:
+        import sys
+
+        repo_root = CANDIDATE_ROOT.parents[1]
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
+        import app as console_app
+        from unity_update import _projection_text
+
+        updater = UnityUpdater(self.config, self.source_root, None)
+
+        # Verify that Markdown syntax in source_text/transport_text was stripped/converted
+        # in desired.native_projection visible text (headings, bullets, bold, code, links, fences).
+        edit_visible = console_app.visible_text_from_native_projection(
+            updater.desired["edit"].native_projection
+        )
+        self.assertNotIn("# EDIT", edit_visible)
+        self.assertNotIn("**Bold**", edit_visible)
+        self.assertNotIn("`code`", edit_visible)
+        self.assertNotIn("[link](https://example.test)", edit_visible)
+        self.assertNotIn("--- GENERATED AUTHORITY ---", edit_visible)
+        self.assertIn("GENERATED AUTHORITY", edit_visible)
+        self.assertIn("Bold and code; link.", edit_visible)
+
+        photo_visible = console_app.visible_text_from_native_projection(
+            updater.desired["photo"].native_projection
+        )
+        self.assertNotIn("```", photo_visible)
+        self.assertIn("Photo return", photo_visible)
+
+        # Simulate Google Drive plain-text export (including UTF-8 BOM and CRLF line endings)
+        docs_payload = {}
+        for role in self.config.publish_order:
+            desired = updater.desired[role]
+            exported_body = "\ufeff" + _projection_text(desired.native_projection).replace(
+                "\n", "\r\n"
+            )
+            docs_payload[role] = {
+                "accessible": True,
+                "document_id": desired.target.document_id,
+                "meta": {
+                    "name": desired.target.title,
+                    "mimeType": GOOGLE_DOC_MIME,
+                    "trashed": False,
+                },
+                "text": exported_body,
+            }
+
+        audit = console_app.audit_drive_payload(
+            {
+                "root": {
+                    "accessible": True,
+                    "meta": {
+                        "name": self.config.root_title,
+                        "mimeType": GOOGLE_FOLDER_MIME,
+                        "driveId": "shared-drive",
+                        "trashed": False,
+                    },
+                },
+                "hierarchy": {"folders": {"DEPLOY": "f1", "DEPLOY/routed": "f2"}},
+                "documents": docs_payload,
+            },
+            config_path=self.config_path,
+            source_root=self.source_root,
+        )
+
+        self.assertFalse(audit["native_structure_verified"])
+        self.assertEqual(audit["summary"]["visible_text_matched_targets"], 7)
+        self.assertTrue(audit["summary"]["all_visible_text_matched"])
+
+        for doc in audit["documents"]:
+            self.assertEqual(doc["status_code"], "VISIBLE_TEXT_MATCH", doc["role"])
+            self.assertEqual(doc["status_label"], "Visible Text Match", doc["role"])
+            self.assertEqual(doc["diff"]["added"], 0, doc["role"])
+            self.assertEqual(doc["diff"]["removed"], 0, doc["role"])
+            self.assertEqual(doc["diff"]["unified_lines"], [], doc["role"])
+            self.assertFalse(doc["native_structure_verified"], doc["role"])
+            self.assertFalse(doc["checks"]["native_projection_verified"], doc["role"])
+            self.assertIsNone(doc["hashes"]["observed_native_projection_sha256"])
+            self.assertEqual(
+                doc["hashes"]["desired_visible_text_sha256"],
+                doc["hashes"]["observed_exported_visible_text_sha256"],
+            )
+
+    def test_plain_text_export_reports_visible_text_diff_when_body_differs(self) -> None:
+        import sys
+
+        repo_root = CANDIDATE_ROOT.parents[1]
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
+        import app as console_app
+
+        updater = UnityUpdater(self.config, self.source_root, None)
+        edit_desired = updater.desired["edit"]
+        valid_visible = console_app.visible_text_from_native_projection(
+            edit_desired.native_projection
+        )
+        drifted_visible = valid_visible.replace(
+            "Bold and code; link.",
+            "- **Bold** and `code`; [link](https://example.test).",
+        )
+        result = console_app._evaluate_single_role(
+            updater,
+            "edit",
+            {
+                "accessible": True,
+                "document_id": edit_desired.target.document_id,
+                "meta": {
+                    "name": edit_desired.target.title,
+                    "mimeType": GOOGLE_DOC_MIME,
+                    "trashed": False,
+                },
+                "text": drifted_visible,
+            },
+        )
+        self.assertEqual(result["status_code"], "VISIBLE_TEXT_DIFF")
+        self.assertEqual(result["status_label"], "Visible Text Diff")
+        self.assertFalse(result["checks"]["visible_text_sha_match"])
+        self.assertGreater(result["diff"]["added"], 0)
+        self.assertGreater(result["diff"]["removed"], 0)
+        self.assertTrue(
+            any("Bold and code; link." in line for line in result["diff"]["unified_lines"])
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
+
